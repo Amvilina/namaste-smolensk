@@ -1,0 +1,19 @@
+html {
+  font-size: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  color: var(--color-fg);
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 100%, var(--color-glow), transparent 68%),
+    var(--color-bg);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  font-weight: 500;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-fg);
+  outline-offset: 0.2rem;
+}

@@ -1,0 +1,25 @@
+.stage {
+  display: grid;
+  align-content: end;
+  gap: clamp(0.75rem, 0.4rem + 1vw, 1.25rem);
+  width: min(100% - 2rem, 72rem);
+  min-height: 100dvh;
+  margin-inline: auto;
+  padding-block: clamp(2rem, 8dvh, 5rem);
+}
+
+.stage p {
+  color: var(--color-muted);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.stage h1 {
+  max-width: 10ch;
+  font-family: var(--font-display);
+  font-size: var(--step-hero);
+  font-weight: 500;
+  font-optical-sizing: auto;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+}
