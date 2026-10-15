@@ -1,3 +1,5 @@
+import { bindAllPhoneInputs, isPhoneRuComplete, setPhoneValidity } from "./phone-ru";
+
 export type Dish = {
   id: string;
   name: string;
@@ -11,9 +13,32 @@ type Stepper = {
   num: HTMLElement;
 };
 
+const STORAGE = "namaste-cart";
 const catalog = new Map<string, Dish>();
 const counts = new Map<string, number>();
 const rows = new Map<string, Stepper>();
+
+function readCounts() {
+  try {
+    const raw = localStorage.getItem(STORAGE);
+    if (!raw) return;
+    const data = JSON.parse(raw) as Record<string, unknown>;
+    for (const [id, count] of Object.entries(data)) {
+      if (typeof count !== "number" || count <= 0) continue;
+      counts.set(id, Math.floor(count));
+    }
+  } catch {
+    localStorage.removeItem(STORAGE);
+  }
+}
+
+function saveCounts() {
+  const data: Record<string, number> = {};
+  for (const [id, count] of counts) data[id] = count;
+  localStorage.setItem(STORAGE, JSON.stringify(data));
+}
+
+readCounts();
 
 const fab = document.createElement("button");
 const badge = document.createElement("span");
@@ -31,6 +56,7 @@ function setCount(id: string, next: number) {
   else counts.set(id, next);
   paintRow(id);
   paintFab();
+  saveCounts();
   if (dialog.open) {
     if (total() === 0) dialog.close();
     else paintLines();
@@ -51,6 +77,14 @@ function paintFab() {
   fab.hidden = count === 0;
   badge.textContent = String(count);
   fab.setAttribute("aria-label", `Корзина, ${count}`);
+}
+
+function emptyCart() {
+  const ids = [...counts.keys()];
+  counts.clear();
+  for (const id of ids) paintRow(id);
+  paintFab();
+  saveCounts();
 }
 
 function stepper(id: string, num: HTMLElement) {
@@ -126,6 +160,7 @@ export function dishControl(dish: Dish) {
 
   wrap.append(add, box);
   rows.set(dish.id, { add, box, num });
+  paintRow(dish.id);
   return wrap;
 }
 
@@ -173,13 +208,10 @@ export function mountCart() {
   });
 
   dialog.className = "cart-dialog";
-  dialog.setAttribute("aria-labelledby", "cart-title");
+  dialog.setAttribute("aria-label", "Корзина");
 
   const head = document.createElement("div");
   head.className = "cart-head";
-  const title = document.createElement("h2");
-  title.id = "cart-title";
-  title.textContent = "Корзина";
   const close = document.createElement("button");
   close.type = "button";
   close.className = "cart-close";
@@ -187,14 +219,90 @@ export function mountCart() {
   close.innerHTML =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
   close.addEventListener("click", () => dialog.close());
-  head.append(title, close);
+  head.append(close);
 
   lines.className = "cart-lines";
-  dialog.append(head, lines);
+
+  const body = document.createElement("div");
+  body.className = "cart-body";
+
+  const form = document.createElement("form");
+  form.className = "cart-form";
+  form.noValidate = true;
+  form.innerHTML = `
+    <label class="field field-address">
+      <span>Адрес</span>
+      <textarea class="input" name="address" rows="4" autocomplete="street-address"></textarea>
+    </label>
+    <label class="field">
+      <span>Телефон</span>
+      <input class="input" type="tel" name="phone" data-phone-ru inputmode="tel" autocomplete="tel" maxlength="18" value="+7" required>
+    </label>
+    <button type="submit">Заказать</button>
+  `;
+
+  const success = document.createElement("div");
+  success.className = "cart-success";
+  success.hidden = true;
+  const bear = document.createElement("img");
+  bear.src = "/logo.webp";
+  bear.alt = "";
+  bear.width = 885;
+  bear.height = 808;
+  const done = document.createElement("p");
+  done.textContent = "Всё успешно. Скоро свяжемся с вами для подтверждения заказа.";
+  success.append(bear, done);
+
+  const phone = form.querySelector<HTMLInputElement>("[data-phone-ru]");
+  const submit = form.querySelector("button");
+  if (!phone || !submit) throw new Error("Order form is missing.");
+
+  const paintOrder = () => {
+    const ready = isPhoneRuComplete(phone.value);
+    submit.disabled = !ready;
+    submit.classList.toggle("is-ready", ready);
+  };
+  phone.addEventListener("input", paintOrder);
+  phone.addEventListener("blur", paintOrder);
+  paintOrder();
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    setPhoneValidity(phone);
+    if (!form.reportValidity()) {
+      const invalid = form.querySelector<HTMLInputElement>(":invalid");
+      invalid?.focus();
+      return;
+    }
+    emptyCart();
+    body.hidden = true;
+    success.hidden = false;
+    dialog.classList.add("is-done");
+  });
+
+  dialog.addEventListener("close", () => {
+    unlockScroll();
+    body.hidden = false;
+    success.hidden = true;
+    dialog.classList.remove("is-done");
+    form.reset();
+    phone.value = "+7";
+    phone.setCustomValidity("");
+    paintOrder();
+  });
+
+  body.append(lines, form);
+  dialog.append(head, body, success);
+  bindAllPhoneInputs(dialog);
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
   });
-  dialog.addEventListener("close", unlockScroll);
+
+  for (const id of [...counts.keys()]) {
+    if (!catalog.has(id)) counts.delete(id);
+  }
+  saveCounts();
+  paintFab();
 
   document.body.append(fab, dialog);
 }
