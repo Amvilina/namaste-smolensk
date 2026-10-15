@@ -25,12 +25,24 @@ for (const section of menu) {
     const item = document.createElement("li");
     item.className = "dish";
 
+    const photo = document.createElement("img");
+    photo.className = "dish-photo";
+    photo.src = dish.image || "/logo.webp";
+    photo.alt = "";
+    photo.width = 885;
+    photo.height = 808;
+
     const copy = document.createElement("div");
     copy.className = "dish-body";
 
     const name = document.createElement("h3");
     name.textContent = dish.name;
-    copy.append(name);
+
+    const amount = document.createElement("p");
+    amount.className = "dish-amount";
+    amount.textContent = dish.amount;
+
+    copy.append(name, amount);
 
     if (dish.note) {
       const note = document.createElement("p");
@@ -39,11 +51,7 @@ for (const section of menu) {
       copy.append(note);
     }
 
-    const amount = document.createElement("p");
-    amount.className = "dish-amount";
-    amount.textContent = dish.amount;
-
-    item.append(copy, amount, dishControl(dish));
+    item.append(photo, copy, dishControl(dish));
     list.append(item);
   }
 

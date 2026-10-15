@@ -5,6 +5,7 @@ export type Dish = {
   name: string;
   note: string;
   amount: string;
+  image: string;
 };
 
 type Stepper = {
@@ -114,6 +115,12 @@ function paintLines() {
     if (!dish) continue;
 
     const item = document.createElement("li");
+    const photo = document.createElement("img");
+    photo.className = "cart-photo";
+    photo.src = dish.image || "/logo.webp";
+    photo.alt = "";
+    photo.width = 885;
+    photo.height = 808;
     const copy = document.createElement("div");
     const name = document.createElement("p");
     name.className = "cart-name";
@@ -135,7 +142,7 @@ function paintLines() {
     const num = document.createElement("span");
     num.className = "qty";
     num.textContent = String(count);
-    item.append(copy, stepper(id, num));
+    item.append(photo, copy, stepper(id, num));
     lines.append(item);
   }
 }
