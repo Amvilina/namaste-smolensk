@@ -1,16 +1,15 @@
 @media (prefers-reduced-motion: no-preference) {
-  .logo,
-  .masthead h1,
-  .lead {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  .brand,
+  .site-header .call {
     animation: rise var(--duration-mid) var(--ease-out) both;
   }
 
-  .masthead h1 {
-    animation-delay: 70ms;
-  }
-
-  .lead {
-    animation-delay: 120ms;
+  .site-header .call {
+    animation-delay: 80ms;
   }
 }
 

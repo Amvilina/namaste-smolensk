@@ -5,4 +5,5 @@
 @import url("./base.css") layer(base);
 @import url("./layout.css") layer(layout);
 @import url("./components/menu.css") layer(components);
+@import url("./components/footer.css") layer(components);
 @import url("./motion.css") layer(motion);

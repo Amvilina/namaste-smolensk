@@ -1,73 +1,104 @@
 .wrap {
-  width: min(100% - 2rem, 68rem);
+  width: min(100% - 2rem, 72rem);
   margin-inline: auto;
 }
 
-.masthead {
+.site-header {
   container-type: inline-size;
-  background-color: oklch(0.945 0.02 80);
-  background-image:
-    url("/pattern.svg"),
-    radial-gradient(ellipse 75% 90% at 0% 110%, var(--color-wash-deep), transparent 60%),
-    radial-gradient(ellipse 70% 80% at 100% -10%, var(--color-wash), transparent 58%);
-  background-repeat: repeat, no-repeat, no-repeat;
-  background-size: 10rem 10rem, auto, auto;
-  padding-block: clamp(1.5rem, 5dvh, 3rem) clamp(2rem, 6dvh, 3.5rem);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background: var(--color-surface);
 }
 
-.masthead .wrap {
+.bar {
   display: grid;
-  grid-template-columns: 1fr;
-  align-items: end;
-  gap: clamp(0.5rem, 2vw, 2rem);
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "brand phone"
+    "nav nav";
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding-block: 0.7rem 0.85rem;
 }
 
-@container (min-width: 42rem) {
-  .masthead .wrap {
-    grid-template-columns: minmax(11rem, 16rem) minmax(0, 1fr);
-    align-items: center;
-  }
+.brand {
+  grid-area: brand;
+  margin: 0;
 }
 
-.logo {
-  width: clamp(9.5rem, 34vw, 15rem);
+.brand a {
+  display: block;
+  text-decoration: none;
+}
+
+.brand img {
+  width: clamp(4rem, 9vw, 5rem);
   height: auto;
 }
 
-.masthead-copy {
-  display: grid;
-  justify-items: start;
-  gap: 0.65rem;
+.site-header .call {
+  grid-area: phone;
+  justify-self: end;
 }
 
-.masthead h1 {
-  max-width: 12ch;
-  font-size: var(--step-hero);
+.site-nav {
+  grid-area: nav;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1.15rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
-.lead {
-  max-width: 28ch;
+.site-nav::-webkit-scrollbar {
+  display: none;
 }
 
-.place {
-  display: grid;
-  gap: 0.2rem;
-  margin-top: 0.35rem;
-  font-style: normal;
+.site-nav a,
+.footer-links a {
+  flex: none;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
 }
 
-.place a {
+.site-nav a:hover,
+.footer-links a:hover,
+.site-nav a.is-current,
+.footer-links a.is-current {
+  color: var(--color-fg);
   text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.18em;
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 0.12em;
+  text-underline-offset: 0.28em;
 }
 
-.menu {
-  container-type: inline-size;
-  padding-block: clamp(1.75rem, 4dvh, 3rem) clamp(2.75rem, 7dvh, 4.5rem);
+.call {
+  color: var(--color-fg);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.15rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.menu h2 {
-  font-size: var(--step-2);
-  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
+.call:hover {
+  color: var(--color-accent);
+}
+
+@container (min-width: 58rem) {
+  .bar {
+    grid-template-columns: auto auto minmax(0, 1fr);
+    grid-template-areas: "brand phone nav";
+    padding-block: 0.55rem;
+  }
+
+  .site-header .call {
+    justify-self: start;
+  }
 }

@@ -13,34 +13,48 @@
     <link rel="stylesheet" href="/src/styles/main.css" />
   </head>
   <body>
-    <header class="masthead">
-      <div class="wrap">
-        <img
-          class="logo"
-          src="/logo.webp"
-          alt="Namaste"
-          width="1024"
-          height="1024"
-          fetchpriority="high"
-        />
-        <div class="masthead-copy">
-          <h1>Татарская кухня</h1>
-          <p class="lead">Доставка по Смоленску</p>
-          <address class="place">
-            <p>Смоленск, ул. Большая Советская, 18</p>
-            <a href="tel:+748120000000">+7 4812 000-00-00</a>
-          </address>
-        </div>
+    <header class="site-header" id="top">
+      <div class="wrap bar">
+        <h1 class="brand">
+          <a href="#top">
+            <img
+              src="/logo.webp"
+              alt="Namaste"
+              width="1024"
+              height="1024"
+              fetchpriority="high"
+            />
+          </a>
+        </h1>
+        <a class="call" href="tel:+77777777777">+7 777 777-77-77</a>
+        <nav class="site-nav" aria-label="Разделы">
+          <a href="#shashlik">Шашлык</a>
+          <a href="#drinks">Напитки</a>
+          <a href="#mors">Морсы</a>
+          <a href="#shawarma">Шаурма</a>
+          <a href="#hot">Горячее</a>
+          <a href="#kystyby">Кыстыбый</a>
+        </nav>
       </div>
     </header>
-    <main>
-      <section class="menu" aria-labelledby="menu-title">
-        <div class="wrap">
-          <h2 id="menu-title">Меню</h2>
-          <ul id="menu" class="menu-list"></ul>
+    <main id="menu"></main>
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div>
+          <p class="footer-name">Namaste</p>
+          <p class="footer-note">Татарская кухня</p>
         </div>
-      </section>
-    </main>
+        <a class="call" href="tel:+77777777777">+7 777 777-77-77</a>
+        <nav class="footer-links" aria-label="Разделы в подвале">
+          <a href="#shashlik">Шашлык</a>
+          <a href="#drinks">Напитки</a>
+          <a href="#mors">Морсы</a>
+          <a href="#shawarma">Шаурма</a>
+          <a href="#hot">Горячее</a>
+          <a href="#kystyby">Кыстыбый</a>
+        </nav>
+      </div>
+    </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
