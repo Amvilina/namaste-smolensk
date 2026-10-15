@@ -3,6 +3,30 @@
   padding-block: clamp(2rem, 4.5vw, 3.25rem);
 }
 
+.board-section:nth-child(6n + 1) {
+  background: oklch(0.975 0.04 98);
+}
+
+.board-section:nth-child(6n + 2) {
+  background: oklch(0.955 0.055 90);
+}
+
+.board-section:nth-child(6n + 3) {
+  background: oklch(0.965 0.035 80);
+}
+
+.board-section:nth-child(6n + 4) {
+  background: oklch(0.945 0.065 86);
+}
+
+.board-section:nth-child(6n + 5) {
+  background: oklch(0.97 0.05 102);
+}
+
+.board-section:nth-child(6n + 6) {
+  background: oklch(0.95 0.06 74);
+}
+
 .board-section .wrap {
   container-type: inline-size;
 }
