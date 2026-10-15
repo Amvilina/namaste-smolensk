@@ -7,4 +7,5 @@
 @import url("./components/menu.css") layer(components);
 @import url("./components/footer.css") layer(components);
 @import url("./components/contacts.css") layer(components);
+@import url("./components/cart.css") layer(components);
 @import url("./motion.css") layer(motion);

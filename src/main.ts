@@ -1,3 +1,4 @@
+import { dishControl, mountCart } from "./cart";
 import menu from "./menu.json";
 
 const board = document.querySelector("#menu");
@@ -42,7 +43,7 @@ for (const section of menu) {
     amount.className = "dish-amount";
     amount.textContent = dish.amount;
 
-    item.append(copy, amount);
+    item.append(copy, amount, dishControl(dish));
     list.append(item);
   }
 
@@ -102,3 +103,5 @@ if (!reduceMotion && rising.length > 0) {
     watch.observe(block);
   }
 }
+
+mountCart();
