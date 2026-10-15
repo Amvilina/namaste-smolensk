@@ -6,11 +6,25 @@ body {
   min-height: 100dvh;
   color: var(--color-fg);
   background:
-    radial-gradient(ellipse 70% 55% at 15% 100%, var(--color-glow), transparent 68%),
+    radial-gradient(ellipse 80% 42% at 100% 0%, oklch(0.92 0.03 65 / 0.7), transparent 62%),
+    radial-gradient(ellipse 55% 36% at 0% 28%, oklch(0.93 0.025 40 / 0.65), transparent 70%),
     var(--color-bg);
   font-family: var(--font-body);
   font-size: var(--step-0);
+  font-weight: 400;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
   font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+a {
+  color: inherit;
 }
 
 :focus-visible {

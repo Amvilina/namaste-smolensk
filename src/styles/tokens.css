@@ -1,12 +1,16 @@
 :root {
-  --color-bg: oklch(0.97 0.012 250);
-  --color-glow: oklch(0.9 0.045 230);
-  --color-fg: oklch(0.22 0.04 255);
-  --color-muted: oklch(0.46 0.03 255);
-  --font-display: "Fraunces", "Iowan Old Style", Palatino, serif;
-  --font-body: "Figtree", "Avenir Next", sans-serif;
-  --step-0: clamp(0.875rem, 0.82rem + 0.25vw, 1rem);
-  --step-hero: clamp(3.5rem, 1.2rem + 9vw, 8rem);
+  --color-bg: oklch(0.965 0.012 85);
+  --color-fg: oklch(0.24 0.02 55);
+  --color-muted: oklch(0.42 0.025 55);
+  --color-wash: oklch(0.9 0.035 70);
+  --color-wash-deep: oklch(0.82 0.04 45);
+  --color-border: oklch(0.84 0.02 70);
+  --font-display: "Unbounded", "Avenir Next", sans-serif;
+  --font-body: "Golos Text", "Avenir Next", sans-serif;
+  --step-0: clamp(1rem, 0.94rem + 0.25vw, 1.125rem);
+  --step-1: clamp(1.15rem, 1.02rem + 0.5vw, 1.4rem);
+  --step-2: clamp(1.6rem, 1.3rem + 1vw, 2rem);
+  --step-hero: clamp(2.1rem, 1.4rem + 2.2vw, 3.4rem);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --duration-mid: 480ms;
+  --duration-mid: 420ms;
 }

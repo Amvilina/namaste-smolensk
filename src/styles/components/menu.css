@@ -1,0 +1,50 @@
+.menu-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@container (min-width: 46rem) {
+  .menu-list {
+    grid-template-columns: 1fr 1fr;
+    column-gap: clamp(1.5rem, 4cqi, 3rem);
+  }
+}
+
+.dish {
+  display: grid;
+  grid-template-columns: clamp(5.75rem, 22cqi, 8.75rem) minmax(0, 1fr);
+  gap: 0.35rem 1rem;
+  align-items: center;
+  padding-block: clamp(0.85rem, 0.5rem + 1vw, 1.15rem);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.dish img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.dish-body {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.dish h3 {
+  font-size: var(--step-1);
+}
+
+.dish-note {
+  max-width: 36ch;
+  color: var(--color-muted);
+}
+
+.dish-price {
+  margin-top: 0.2rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}

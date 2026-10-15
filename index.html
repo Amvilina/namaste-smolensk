@@ -1,21 +1,45 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello, world</title>
+    <title>Namaste — татарская кухня</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Figtree:wght@500&family=Fraunces:opsz,wght@9..144,500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500&family=Unbounded:wght@500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/src/styles/main.css" />
   </head>
   <body>
-    <main class="stage">
-      <p id="eyebrow"></p>
-      <h1 id="greeting"></h1>
+    <header class="masthead">
+      <div class="wrap">
+        <img
+          class="logo"
+          src="/logo.webp"
+          alt="Namaste"
+          width="1024"
+          height="1024"
+          fetchpriority="high"
+        />
+        <div class="masthead-copy">
+          <h1>Татарская кухня</h1>
+          <p class="lead">Доставка по Смоленску</p>
+          <address class="place">
+            <p>Смоленск, ул. Большая Советская, 18</p>
+            <a href="tel:+748120000000">+7 4812 000-00-00</a>
+          </address>
+        </div>
+      </div>
+    </header>
+    <main>
+      <section class="menu" aria-labelledby="menu-title">
+        <div class="wrap">
+          <h2 id="menu-title">Меню</h2>
+          <ul id="menu" class="menu-list"></ul>
+        </div>
+      </section>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

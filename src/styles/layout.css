@@ -1,25 +1,73 @@
-.stage {
-  display: grid;
-  align-content: end;
-  gap: clamp(0.75rem, 0.4rem + 1vw, 1.25rem);
-  width: min(100% - 2rem, 72rem);
-  min-height: 100dvh;
+.wrap {
+  width: min(100% - 2rem, 68rem);
   margin-inline: auto;
-  padding-block: clamp(2rem, 8dvh, 5rem);
 }
 
-.stage p {
-  color: var(--color-muted);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+.masthead {
+  container-type: inline-size;
+  background-color: oklch(0.945 0.02 80);
+  background-image:
+    url("/pattern.svg"),
+    radial-gradient(ellipse 75% 90% at 0% 110%, var(--color-wash-deep), transparent 60%),
+    radial-gradient(ellipse 70% 80% at 100% -10%, var(--color-wash), transparent 58%);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 10rem 10rem, auto, auto;
+  padding-block: clamp(1.5rem, 5dvh, 3rem) clamp(2rem, 6dvh, 3.5rem);
 }
 
-.stage h1 {
-  max-width: 10ch;
-  font-family: var(--font-display);
+.masthead .wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: end;
+  gap: clamp(0.5rem, 2vw, 2rem);
+}
+
+@container (min-width: 42rem) {
+  .masthead .wrap {
+    grid-template-columns: minmax(11rem, 16rem) minmax(0, 1fr);
+    align-items: center;
+  }
+}
+
+.logo {
+  width: clamp(9.5rem, 34vw, 15rem);
+  height: auto;
+}
+
+.masthead-copy {
+  display: grid;
+  justify-items: start;
+  gap: 0.65rem;
+}
+
+.masthead h1 {
+  max-width: 12ch;
   font-size: var(--step-hero);
-  font-weight: 500;
-  font-optical-sizing: auto;
-  letter-spacing: -0.04em;
-  line-height: 0.9;
+}
+
+.lead {
+  max-width: 28ch;
+}
+
+.place {
+  display: grid;
+  gap: 0.2rem;
+  margin-top: 0.35rem;
+  font-style: normal;
+}
+
+.place a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.menu {
+  container-type: inline-size;
+  padding-block: clamp(1.75rem, 4dvh, 3rem) clamp(2.75rem, 7dvh, 4.5rem);
+}
+
+.menu h2 {
+  font-size: var(--step-2);
+  margin-bottom: clamp(0.75rem, 2vw, 1.25rem);
 }
