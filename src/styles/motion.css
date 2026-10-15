@@ -5,23 +5,32 @@
 
   .hero h1,
   .hero p,
-  .order {
-    animation: rise var(--duration-mid) var(--ease-out) both;
+  .hero .order {
+    animation: rise 1.2s var(--ease-out) both;
   }
 
   .hero p {
-    animation-delay: 70ms;
+    animation-delay: 180ms;
   }
 
-  .order {
-    animation-delay: 130ms;
+  .hero .order {
+    animation-delay: 360ms;
+  }
+
+  html.js .will-rise:not(.is-shown) {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+
+  html.js .will-rise.is-shown {
+    animation: rise 1.2s var(--ease-out) both;
   }
 }
 
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(0.4rem);
+    transform: translateY(1.5rem);
   }
 
   to {

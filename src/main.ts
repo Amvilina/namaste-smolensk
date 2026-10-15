@@ -79,3 +79,26 @@ if (navLinks.length > 0) {
     seen.observe(section);
   }
 }
+
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rising = document.querySelectorAll(".board-section, .contacts, .site-footer");
+
+if (!reduceMotion && rising.length > 0) {
+  document.documentElement.classList.add("js");
+
+  const watch = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("is-shown");
+        watch.unobserve(entry.target);
+      }
+    },
+    { threshold: 0.18 },
+  );
+
+  for (const block of rising) {
+    block.classList.add("will-rise");
+    watch.observe(block);
+  }
+}
