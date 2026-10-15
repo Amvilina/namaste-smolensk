@@ -62,17 +62,11 @@
   <body>
     <header class="site-header" id="top">
       <div class="wrap bar">
-        <h1 class="brand">
+        <div class="brand">
           <a href="#top">
-            <img
-              src="/logo.webp"
-              alt="Namaste"
-              width="1024"
-              height="1024"
-              fetchpriority="high"
-            />
+            <img src="/logo.webp" alt="Namaste" width="1024" height="1024" />
           </a>
-        </h1>
+        </div>
         <a class="call" href="tel:+77777777777">+7 777 777-77-77</a>
         <nav class="site-nav" aria-label="Разделы">
           <a href="#shashlik">Шашлык</a>
@@ -84,7 +78,24 @@
         </nav>
       </div>
     </header>
-    <main id="menu"></main>
+    <main>
+      <section class="hero">
+        <img
+          class="hero-photo"
+          src="/hero.webp"
+          alt=""
+          width="1280"
+          height="720"
+          fetchpriority="high"
+        />
+        <div class="wrap hero-copy">
+          <h1>Доставка по Смоленску</h1>
+          <p>Шашлык, шаурма и кыстыбый — горячими.</p>
+          <a class="order" href="#shashlik">Заказать</a>
+        </div>
+      </section>
+      <div id="menu"></div>
+    </main>
     <footer class="site-footer">
       <div class="wrap footer-grid">
         <div>

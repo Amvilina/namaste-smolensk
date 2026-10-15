@@ -3,13 +3,18 @@
     scroll-behavior: smooth;
   }
 
-  .brand,
-  .site-header .call {
+  .hero h1,
+  .hero p,
+  .order {
     animation: rise var(--duration-mid) var(--ease-out) both;
   }
 
-  .site-header .call {
-    animation-delay: 80ms;
+  .hero p {
+    animation-delay: 70ms;
+  }
+
+  .order {
+    animation-delay: 130ms;
   }
 }
 
