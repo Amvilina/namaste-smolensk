@@ -1,37 +1,69 @@
 .site-footer {
+  container-type: inline-size;
   background: var(--color-surface);
-  padding-block: 0.8rem;
+  padding-block: clamp(2rem, 5vw, 3rem);
 }
 
 .footer-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  gap: 1.35rem 2rem;
   align-items: center;
-  gap: 0.4rem 1.25rem;
 }
 
-.footer-grid > div {
-  display: flex;
-  align-items: baseline;
-  gap: 0.45rem;
+.footer-brand {
+  display: grid;
+  gap: 0.3rem;
 }
 
 .footer-name {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: var(--step-2);
   font-weight: 500;
   letter-spacing: -0.03em;
 }
 
 .footer-note {
   color: var(--color-muted);
-  font-size: 0.875rem;
 }
 
 .footer-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.65rem 1.15rem;
-  margin-left: auto;
+  gap: 0.65rem 1.35rem;
+}
+
+.legal {
+  display: grid;
+  gap: 0.2rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+@container (min-width: 40rem) {
+  .footer-grid {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "brand phone"
+      "links links"
+      "legal legal";
+  }
+
+  .footer-brand {
+    grid-area: brand;
+  }
+
+  .site-footer .call {
+    grid-area: phone;
+    justify-self: end;
+  }
+
+  .footer-links {
+    grid-area: links;
+  }
+
+  .legal {
+    grid-area: legal;
+    margin-top: 0.35rem;
+  }
 }
