@@ -1,0 +1,27 @@
+{
+  "name": "Namaste — татарская кухня",
+  "short_name": "Namaste",
+  "lang": "ru",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#fff8e8",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/favicon.webp",
+      "sizes": "64x64",
+      "type": "image/webp"
+    },
+    {
+      "src": "/apple-touch-icon.webp",
+      "sizes": "180x180",
+      "type": "image/webp"
+    },
+    {
+      "src": "/logo.webp",
+      "sizes": "1024x1024",
+      "type": "image/webp",
+      "purpose": "any"
+    }
+  ]
+}
