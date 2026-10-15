@@ -131,6 +131,23 @@
   padding-block: clamp(2.5rem, 8dvh, 4.5rem);
 }
 
+.hero h1,
+.hero p {
+  text-shadow:
+    0 -1px 0 #fff,
+    1px -1px 0 #fff,
+    1px 0 0 #fff,
+    1px 1px 0 #fff,
+    0 1px 0 #fff,
+    -1px 1px 0 #fff,
+    -1px 0 0 #fff,
+    -1px -1px 0 #fff,
+    0 -2px 0 #fff,
+    2px 0 0 #fff,
+    0 2px 0 #fff,
+    -2px 0 0 #fff;
+}
+
 .hero h1 {
   max-width: min(12ch, 100%);
   font-size: clamp(2.65rem, 1.1rem + 5.5vw, 5rem);
@@ -141,6 +158,25 @@
   max-width: min(22ch, 100%);
   margin-top: 1rem;
   font-size: clamp(1.25rem, 1rem + 1.2vw, 1.7rem);
+}
+
+@media (max-width: 46rem) {
+  .hero {
+    align-items: start;
+    min-height: 16rem;
+  }
+
+  .hero-photo {
+    object-position: 78% 100%;
+  }
+
+  .hero-copy {
+    padding-block: 1.25rem 1rem;
+  }
+
+  .hero .order {
+    margin-top: 1rem;
+  }
 }
 
 .order {
