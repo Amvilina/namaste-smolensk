@@ -89,7 +89,7 @@
       {
         "id": "mors-strawberry",
         "name": "Клубничный морс",
-        "note": "",
+        "note": "Мёд, вода, клубника",
         "amount": "0,4 л",
         "image": "/logo.webp",
         "price": 150
@@ -97,7 +97,7 @@
       {
         "id": "mors-lingon",
         "name": "Брусничный морс",
-        "note": "",
+        "note": "Мёд, вода, брусника",
         "amount": "0,4 л",
         "image": "/logo.webp",
         "price": 150
@@ -105,7 +105,7 @@
       {
         "id": "mors-raspberry",
         "name": "Малиновый морс",
-        "note": "",
+        "note": "Мёд, вода, малина",
         "amount": "0,4 л",
         "image": "/logo.webp",
         "price": 150
@@ -113,15 +113,15 @@
       {
         "id": "mors-sea",
         "name": "Облепиховый морс",
-        "note": "",
-        "amount": "",
+        "note": "Мёд, вода, облепиха",
+        "amount": "0,4 л",
         "image": "/logo.webp",
         "price": 150
       },
       {
         "id": "mojito",
         "name": "Мохито",
-        "note": "",
+        "note": "Вода газированная, лимон, мята",
         "amount": "0,4 л",
         "image": "/logo.webp",
         "price": 150
@@ -268,7 +268,7 @@
         "id": "kystyby",
         "name": "Кыстыбый",
         "note": "Лаваш, картофельное пюре",
-        "amount": "",
+        "amount": "260 г",
         "image": "/logo.webp",
         "price": 150,
         "extras": [
@@ -316,8 +316,8 @@
       {
         "id": "taras-beef",
         "name": "Тарас бургер с говядиной",
-        "note": "",
-        "amount": "",
+        "note": "Говядина, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
+        "amount": "260 г",
         "image": "/logo.webp",
         "price": 250
       }
