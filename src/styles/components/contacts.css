@@ -64,7 +64,7 @@
   stroke-linejoin: round;
 }
 
-.contact-list a[href*="vk.com"] svg {
+.contact-list a[href*="vk.ru"] svg {
   fill: currentColor;
   stroke: none;
 }
