@@ -31,9 +31,22 @@
   container-type: inline-size;
 }
 
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.35rem;
+}
+
+.section-title img {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  object-fit: contain;
+}
+
 .board-section h2 {
   font-size: clamp(1.85rem, 1.25rem + 1.6vw, 2.65rem);
-  margin-bottom: 1.35rem;
 }
 
 .menu-list {
@@ -109,6 +122,19 @@
   grid-row: 2;
   justify-self: center;
   align-self: start;
+}
+
+.dish-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dish-name img {
+  width: 1.65rem;
+  height: 1.65rem;
+  flex: none;
+  object-fit: contain;
 }
 
 .dish h3 {

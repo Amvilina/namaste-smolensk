@@ -1,6 +1,39 @@
 import { dishControl, formatPrice, mountCart, orderPrice, refreshDish } from "./cart";
 import menu from "./menu.json";
 
+const sectionMark: Record<string, string> = {
+  shashlik: "/icons/steak.webp",
+  drinks: "/icons/lemon.webp",
+  mors: "/icons/strawberry.webp",
+  shawarma: "/icons/shawarma.webp",
+  hot: "/icons/fries.webp",
+  kystyby: "/icons/wheat.webp",
+};
+
+const dishIcons: Record<string, string> = {
+  "mors-strawberry": "/icons/strawberry.webp",
+  "mors-lingon": "/icons/lingonberry.webp",
+  "mors-raspberry": "/icons/raspberry.webp",
+  mojito: "/icons/lime.webp",
+  lemonade: "/icons/lemon.webp",
+  "shashlik-chicken": "/icons/chicken.webp",
+  "shashlik-sheya": "/icons/pig.webp",
+  "shashlik-lopatka": "/icons/pig.webp",
+  "taras-pork": "/icons/pig.webp",
+  "taras-hot": "/icons/chili.webp",
+  "taras-beef": "/icons/steak.webp",
+  nuggets: "/icons/nuggets.webp",
+  fries: "/icons/fries.webp",
+  "hotdog-lavash": "/icons/shawarma.webp",
+  "hotdog-bun": "/icons/hotdog.webp",
+  "shawarma-pork": "/icons/pig.webp",
+  "shawarma-hearts": "/icons/chicken.webp",
+  "shawarma-vegan": "/icons/leaf.webp",
+  "shawarma-asian": "/icons/chili.webp",
+  "shawarma-hunter": "/icons/sausage.webp",
+  "shawarma-village": "/icons/wheat.webp",
+};
+
 const board = document.querySelector("#menu");
 
 if (!(board instanceof HTMLElement)) {
@@ -38,12 +71,24 @@ for (const section of menu) {
 
     const name = document.createElement("h3");
     name.textContent = dish.name;
+    const nameRow = document.createElement("div");
+    nameRow.className = "dish-name";
+    const icon = dishIcons[dish.id];
+    if (icon) {
+      const badge = document.createElement("img");
+      badge.src = icon;
+      badge.alt = "";
+      badge.width = 512;
+      badge.height = 512;
+      nameRow.append(badge);
+    }
+    nameRow.append(name);
 
     const picked = new Set<string>();
     const extras = "extras" in dish && dish.extras ? dish.extras : [];
     if (extras.length) item.classList.add("has-extras");
 
-    copy.append(name);
+    copy.append(nameRow);
 
     let showPrice = () => {};
     if (dish.price != null) {
@@ -117,7 +162,21 @@ for (const section of menu) {
     list.append(item);
   }
 
-  inner.append(title, list);
+  const mark = sectionMark[section.id];
+  if (mark) {
+    const heading = document.createElement("div");
+    heading.className = "section-title";
+    const badge = document.createElement("img");
+    badge.src = mark;
+    badge.alt = "";
+    badge.width = 512;
+    badge.height = 512;
+    heading.append(badge, title);
+    inner.append(heading, list);
+  } else {
+    inner.append(title, list);
+  }
+
   block.append(inner);
   board.append(block);
 }
