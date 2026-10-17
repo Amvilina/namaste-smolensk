@@ -87,18 +87,16 @@
   min-width: 0;
 }
 
-.dish-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.25rem 0.75rem;
-}
-
-.dish-price {
+.dish-price,
+.extra-price {
+  justify-self: start;
+  width: fit-content;
+  padding: 0.12rem 0.5rem;
+  border: 1px solid oklch(0.28 0.03 75);
+  border-radius: 0.4rem;
+  background: var(--color-surface);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
 .dish-amount {
@@ -170,8 +168,7 @@
 }
 
 .extra-price {
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  justify-self: end;
 }
 
 .extra.is-on {

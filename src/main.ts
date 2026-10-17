@@ -39,13 +39,11 @@ for (const section of menu) {
     const name = document.createElement("h3");
     name.textContent = dish.name;
 
-    const head = document.createElement("div");
-    head.className = "dish-head";
-    head.append(name);
-
     const picked = new Set<string>();
     const extras = "extras" in dish && dish.extras ? dish.extras : [];
     if (extras.length) item.classList.add("has-extras");
+
+    copy.append(name);
 
     let showPrice = () => {};
     if (dish.price != null) {
@@ -56,10 +54,8 @@ for (const section of menu) {
         if (value != null) price.textContent = formatPrice(value);
       };
       showPrice();
-      head.append(price);
+      copy.append(price);
     }
-
-    copy.append(head);
 
     if (dish.amount) {
       const amount = document.createElement("p");
