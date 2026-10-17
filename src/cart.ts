@@ -1,12 +1,32 @@
 import { bindAllPhoneInputs, isPhoneRuComplete, setPhoneValidity } from "./phone-ru";
 
+export type Extra = {
+  id: string;
+  name: string;
+  price: number;
+};
+
 export type Dish = {
   id: string;
   name: string;
   note: string;
   amount: string;
   image: string;
+  price?: number;
+  per?: string;
+  extras?: Extra[];
 };
+
+type Line = {
+  id: string;
+  extras: string[];
+  count: number;
+};
+
+export function formatPrice(price: number, per?: string) {
+  const text = `${new Intl.NumberFormat("ru-RU").format(price)}\u00a0₽`;
+  return per ? `${text} / ${per}` : text;
+}
 
 type Stepper = {
   add: HTMLButtonElement;
@@ -16,17 +36,47 @@ type Stepper = {
 
 const STORAGE = "namaste-cart";
 const catalog = new Map<string, Dish>();
-const counts = new Map<string, number>();
+const orders = new Map<string, Line>();
 const rows = new Map<string, Stepper>();
+const picks = new Map<string, () => string[]>();
+
+function lineKey(id: string, extras: string[]) {
+  const list = [...extras].sort();
+  return list.length ? `${id}:${list.join(",")}` : id;
+}
+
+function chosen(id: string) {
+  return picks.get(id)?.() ?? [];
+}
+
+export function orderPrice(dish: Dish, extraIds: string[]) {
+  if (dish.price == null) return null;
+  let value = dish.price;
+  for (const id of extraIds) {
+    const extra = dish.extras?.find((item) => item.id === id);
+    if (!extra) return null;
+    value += extra.price;
+  }
+  return value;
+}
 
 function readCounts() {
   try {
     const raw = localStorage.getItem(STORAGE);
     if (!raw) return;
     const data = JSON.parse(raw) as Record<string, unknown>;
-    for (const [id, count] of Object.entries(data)) {
+    for (const [stored, count] of Object.entries(data)) {
       if (typeof count !== "number" || count <= 0) continue;
-      counts.set(id, Math.floor(count));
+      const cut = stored.indexOf(":");
+      const id = cut === -1 ? stored : stored.slice(0, cut);
+      const extras = cut === -1 ? [] : stored.slice(cut + 1).split(",").filter(Boolean);
+      const key = lineKey(id, extras);
+      const prev = orders.get(key);
+      orders.set(key, {
+        id,
+        extras: [...extras].sort(),
+        count: (prev?.count ?? 0) + Math.floor(count),
+      });
     }
   } catch {
     localStorage.removeItem(STORAGE);
@@ -35,7 +85,7 @@ function readCounts() {
 
 function saveCounts() {
   const data: Record<string, number> = {};
-  for (const [id, count] of counts) data[id] = count;
+  for (const [key, line] of orders) data[key] = line.count;
   localStorage.setItem(STORAGE, JSON.stringify(data));
 }
 
@@ -45,16 +95,38 @@ const fab = document.createElement("button");
 const badge = document.createElement("span");
 const dialog = document.createElement("dialog");
 const lines = document.createElement("ul");
+const sum = document.createElement("p");
 
 function total() {
   let sum = 0;
-  for (const count of counts.values()) sum += count;
+  for (const line of orders.values()) sum += line.count;
   return sum;
 }
 
-function setCount(id: string, next: number) {
-  if (next <= 0) counts.delete(id);
-  else counts.set(id, next);
+function pricedTotal() {
+  let value = 0;
+  let any = false;
+  for (const line of orders.values()) {
+    const dish = catalog.get(line.id);
+    if (!dish) continue;
+    const price = orderPrice(dish, line.extras);
+    if (price == null) continue;
+    any = true;
+    value += price * line.count;
+  }
+  return any ? value : null;
+}
+
+function setCount(key: string, next: number) {
+  const current = orders.get(key);
+  const cut = key.indexOf(":");
+  const id = current?.id ?? (cut === -1 ? key : key.slice(0, cut));
+  const extras = current?.extras ?? (cut === -1 ? [] : key.slice(cut + 1).split(",").filter(Boolean));
+  const dish = catalog.get(id);
+  const price = dish ? orderPrice(dish, extras) : null;
+  if (next > (current?.count ?? 0) && price == null) return;
+  if (next <= 0) orders.delete(key);
+  else orders.set(key, { id, extras, count: next });
   paintRow(id);
   paintFab();
   saveCounts();
@@ -67,10 +139,14 @@ function setCount(id: string, next: number) {
 function paintRow(id: string) {
   const row = rows.get(id);
   if (!row) return;
-  const count = counts.get(id) ?? 0;
+  const count = orders.get(lineKey(id, chosen(id)))?.count ?? 0;
   row.add.hidden = count > 0;
   row.box.hidden = count === 0;
   row.num.textContent = String(count);
+}
+
+export function refreshDish(id: string) {
+  paintRow(id);
 }
 
 function paintFab() {
@@ -81,14 +157,14 @@ function paintFab() {
 }
 
 function emptyCart() {
-  const ids = [...counts.keys()];
-  counts.clear();
+  const ids = new Set([...orders.values()].map((line) => line.id));
+  orders.clear();
   for (const id of ids) paintRow(id);
   paintFab();
   saveCounts();
 }
 
-function stepper(id: string, num: HTMLElement) {
+function stepper(getKey: () => string, num: HTMLElement, priced: boolean) {
   const box = document.createElement("div");
   box.className = "stepper";
 
@@ -96,13 +172,20 @@ function stepper(id: string, num: HTMLElement) {
   dec.type = "button";
   dec.textContent = "−";
   dec.setAttribute("aria-label", "Меньше");
-  dec.addEventListener("click", () => setCount(id, (counts.get(id) ?? 0) - 1));
+  dec.addEventListener("click", () => {
+    const key = getKey();
+    setCount(key, (orders.get(key)?.count ?? 0) - 1);
+  });
 
   const inc = document.createElement("button");
   inc.type = "button";
   inc.textContent = "+";
   inc.setAttribute("aria-label", "Больше");
-  inc.addEventListener("click", () => setCount(id, (counts.get(id) ?? 0) + 1));
+  inc.disabled = !priced;
+  inc.addEventListener("click", () => {
+    const key = getKey();
+    setCount(key, (orders.get(key)?.count ?? 0) + 1);
+  });
 
   box.append(dec, num, inc);
   return box;
@@ -110,9 +193,10 @@ function stepper(id: string, num: HTMLElement) {
 
 function paintLines() {
   lines.replaceChildren();
-  for (const [id, count] of counts) {
-    const dish = catalog.get(id);
+  for (const line of orders.values()) {
+    const dish = catalog.get(line.id);
     if (!dish) continue;
+    const count = line.count;
 
     const item = document.createElement("li");
     const photo = document.createElement("img");
@@ -134,21 +218,55 @@ function paintLines() {
       copy.append(note);
     }
 
-    const amount = document.createElement("p");
-    amount.className = "cart-amount";
-    amount.textContent = dish.amount;
-    copy.append(amount);
+    const mix = (dish.extras ?? [])
+      .filter((extra) => line.extras.includes(extra.id))
+      .map((extra) => extra.name);
+    if (mix.length) {
+      const picked = document.createElement("p");
+      picked.className = "cart-mix";
+      picked.textContent = mix.join(", ");
+      copy.append(picked);
+    }
+
+    if (dish.amount) {
+      const amount = document.createElement("p");
+      amount.className = "cart-amount";
+      amount.textContent = dish.amount;
+      copy.append(amount);
+    }
+
+    const side = document.createElement("div");
+    side.className = "cart-side";
+    const price = orderPrice(dish, line.extras);
+    if (price != null) {
+      const cost = document.createElement("p");
+      cost.className = "cart-cost";
+      cost.textContent = formatPrice(price * count);
+      side.append(cost);
+    }
 
     const num = document.createElement("span");
     num.className = "qty";
     num.textContent = String(count);
-    item.append(photo, copy, stepper(id, num));
+    side.append(stepper(() => lineKey(line.id, line.extras), num, price != null));
+    item.append(photo, copy, side);
     lines.append(item);
+  }
+
+  const priced = pricedTotal();
+  sum.hidden = priced == null;
+  if (priced != null) {
+    const label = document.createElement("span");
+    label.textContent = "Итого";
+    const value = document.createElement("span");
+    value.textContent = formatPrice(priced);
+    sum.replaceChildren(label, value);
   }
 }
 
-export function dishControl(dish: Dish) {
+export function dishControl(dish: Dish, getExtras?: () => string[]) {
   catalog.set(dish.id, dish);
+  if (getExtras) picks.set(dish.id, getExtras);
 
   const wrap = document.createElement("div");
   wrap.className = "dish-add";
@@ -158,11 +276,15 @@ export function dishControl(dish: Dish) {
   add.className = "add";
   add.textContent = "+";
   add.setAttribute("aria-label", "Добавить");
-  add.addEventListener("click", () => setCount(dish.id, 1));
+  add.disabled = dish.price == null;
+  add.addEventListener("click", () => {
+    const key = lineKey(dish.id, chosen(dish.id));
+    setCount(key, (orders.get(key)?.count ?? 0) + 1);
+  });
 
   const num = document.createElement("span");
   num.className = "qty";
-  const box = stepper(dish.id, num);
+  const box = stepper(() => lineKey(dish.id, chosen(dish.id)), num, dish.price != null);
   box.hidden = true;
 
   wrap.append(add, box);
@@ -229,6 +351,8 @@ export function mountCart() {
   head.append(close);
 
   lines.className = "cart-lines";
+  sum.className = "cart-total";
+  sum.hidden = true;
 
   const body = document.createElement("div");
   body.className = "cart-body";
@@ -298,16 +422,23 @@ export function mountCart() {
     paintOrder();
   });
 
-  body.append(lines, form);
+  const basket = document.createElement("div");
+  basket.className = "cart-basket";
+  basket.append(lines, sum);
+  body.append(basket, form);
   dialog.append(head, body, success);
   bindAllPhoneInputs(dialog);
   dialog.addEventListener("click", (event) => {
     if (event.target === dialog) dialog.close();
   });
 
-  for (const id of [...counts.keys()]) {
-    if (!catalog.has(id)) counts.delete(id);
+  for (const [key, line] of [...orders]) {
+    const dish = catalog.get(line.id);
+    const known = new Set(dish?.extras?.map((extra) => extra.id) ?? []);
+    const extrasOk = line.extras.every((id) => known.has(id));
+    if (!dish || !extrasOk) orders.delete(key);
   }
+  for (const id of catalog.keys()) paintRow(id);
   saveCounts();
   paintFab();
 

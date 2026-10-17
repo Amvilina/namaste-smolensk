@@ -38,6 +38,19 @@
   background: oklch(0.84 0.16 98);
 }
 
+.add:disabled,
+.stepper button:disabled {
+  border-color: oklch(0.72 0.01 95);
+  background: oklch(0.9 0.01 95);
+  color: oklch(0.62 0.01 90);
+  cursor: default;
+}
+
+.add:disabled:hover,
+.stepper button:disabled:hover {
+  background: oklch(0.9 0.01 95);
+}
+
 .cart-close {
   border-radius: 0.4rem;
   background: oklch(0.24 0.03 70);
@@ -262,6 +275,12 @@
   letter-spacing: -0.03em;
 }
 
+.cart-basket {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
 .cart-lines {
   display: grid;
   gap: 1rem;
@@ -295,6 +314,41 @@
   margin-top: 0.25rem;
   color: var(--color-muted);
   font-size: 0.92rem;
+}
+
+.cart-mix {
+  margin-top: 0.25rem;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.cart-side {
+  display: grid;
+  justify-items: end;
+  align-content: center;
+  gap: 0.4rem;
+}
+
+.cart-cost,
+.cart-total {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding-top: 0.85rem;
+  border-top: 1px solid oklch(0.28 0.03 75 / 0.2);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.cart-total[hidden] {
+  display: none;
 }
 
 .cart-lines .qty {

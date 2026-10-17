@@ -7,22 +7,25 @@
         "id": "shashlik-sheya",
         "name": "Шашлык свиной (шея)",
         "note": "Свиная шея, салат витаминный, соус фирменный, лук маринованный, лаваш",
-        "amount": "450 г",
-        "image": "/logo.webp"
+        "amount": "100 г",
+        "image": "/logo.webp",
+        "price": 190
       },
       {
         "id": "shashlik-lopatka",
         "name": "Шашлык свиной (лопатка)",
         "note": "Лопатка свиная, салат витаминный, лук маринованный, соус фирменный",
-        "amount": "450 г",
-        "image": "/logo.webp"
+        "amount": "100 г",
+        "image": "/logo.webp",
+        "price": 190
       },
       {
         "id": "shashlik-chicken",
         "name": "Шашлык курица",
         "note": "Филе куриное, салат витаминный, огурец свежий, помидор свежий, лаваш, соус фирменный",
-        "amount": "400 г",
-        "image": "/logo.webp"
+        "amount": "100 г",
+        "image": "/logo.webp",
+        "price": 140
       }
     ]
   },
@@ -35,7 +38,8 @@
         "name": "Вода газ/негаз",
         "note": "",
         "amount": "0,5 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 70
       },
       {
         "id": "energy",
@@ -49,28 +53,32 @@
         "name": "Кока-кола",
         "note": "",
         "amount": "0,5 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 120
       },
       {
         "id": "lemonade",
         "name": "Лимонад",
         "note": "",
         "amount": "0,5 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 80
       },
       {
         "id": "coffee",
         "name": "Кофе",
         "note": "",
         "amount": "0,3 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 100
       },
       {
         "id": "tea",
         "name": "Чай",
         "note": "",
         "amount": "0,3 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 50
       }
     ]
   },
@@ -83,28 +91,40 @@
         "name": "Клубничный морс",
         "note": "",
         "amount": "0,4 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 150
       },
       {
         "id": "mors-lingon",
         "name": "Брусничный морс",
         "note": "",
         "amount": "0,4 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 150
       },
       {
         "id": "mors-raspberry",
         "name": "Малиновый морс",
         "note": "",
         "amount": "0,4 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 150
+      },
+      {
+        "id": "mors-sea",
+        "name": "Облепиховый морс",
+        "note": "",
+        "amount": "",
+        "image": "/logo.webp",
+        "price": 150
       },
       {
         "id": "mojito",
         "name": "Мохито",
         "note": "",
         "amount": "0,4 л",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 150
       }
     ]
   },
@@ -117,49 +137,56 @@
         "name": "Шаурма классическая",
         "note": "Курица, свежие овощи, маринованный лук, чесночный и шашлычный соусы, армянский лаваш",
         "amount": "400 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 300
       },
       {
         "id": "shawarma-pork",
         "name": "Шаурма-свинья",
         "note": "Свинина, пекинская капуста, маринованные огурцы, помидоры, лук, чесночный и острый соусы",
         "amount": "380 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 450
       },
       {
         "id": "shawarma-hearts",
         "name": "Шаурма с куриными сердечками",
         "note": "Сердечки в соусе, морковь по-корейски, пекинская капуста, лук фри, медово-горчичный соус",
         "amount": "390 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 400
       },
       {
         "id": "shawarma-vegan",
         "name": "Шаурма веганская",
         "note": "Сулугуни, картофель фри и по-деревенски, морковь по-корейски, салат, лук, сметанный соус, песто или кетчуп",
         "amount": "380 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 250
       },
       {
         "id": "shawarma-asian",
         "name": "Шаурма азиатская",
         "note": "Кимчи, маринованные грибы, морковь по-корейски, фета, маринованные огурцы и помидоры, соус манго или чили",
         "amount": "380 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 320
       },
       {
         "id": "shawarma-hunter",
         "name": "Шаурма охотничья",
         "note": "Охотничьи колбаски с сыром, овощной салат, маринованные огурцы, помидоры, чесночный соус, аджика-барбекю",
         "amount": "390 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 350
       },
       {
         "id": "shawarma-village",
         "name": "Шаурма деревенская",
         "note": "Картофель по-деревенски и фри, сулугуни, солёные огурцы, чесночный соус",
         "amount": "400 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 360
       }
     ]
   },
@@ -172,56 +199,64 @@
         "name": "Наггетсы куриные 6 шт",
         "note": "Куриное филе в хрустящей панировке из темпурной муки и чипсов",
         "amount": "130 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 160
       },
       {
         "id": "fries",
         "name": "Большой картофель фри",
         "note": "Картошка, соль",
         "amount": "130 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 160
       },
       {
         "id": "potato-village",
         "name": "Картофель по-деревенски",
         "note": "Молодой картофель с чесночным маслом",
         "amount": "160 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 160
       },
       {
         "id": "cheese-balls",
         "name": "Авторские сырные шарики",
         "note": "Моцарелла, пармезан и кремета в хрустящей панировке, соус унаги",
         "amount": "160 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 200
       },
       {
         "id": "hotdog-lavash",
         "name": "Хот-дог в лаваше",
         "note": "2 сосиски, овощной салат, морковь по-корейски, лук фри, фирменный соус, дижонская горчица",
         "amount": "280 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 220
       },
       {
         "id": "hotdog-bun",
         "name": "Хот-дог в булке",
         "note": "2 сосиски, овощной салат, морковь по-корейски, лук фри, фирменный соус, дижонская горчица",
         "amount": "290 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 220
       },
       {
         "id": "french-dog",
         "name": "Френч-дог",
         "note": "Сосиска в булке френч, горчица, кетчуп",
         "amount": "90 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 150
       },
       {
         "id": "falafel",
         "name": "Фалафель",
         "note": "Нутовые котлеты со специями, пекинская капуста, курица или свинина на выбор, зелёный лаваш",
         "amount": "350 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 320
       }
     ]
   },
@@ -230,60 +265,61 @@
     "title": "Кыстыбый и бургеры",
     "dishes": [
       {
-        "id": "kystyby-greens",
-        "name": "Кыстыбый с зеленью",
-        "note": "Кесадилья, сыр кремета, шпинат",
-        "amount": "260 г",
-        "image": "/logo.webp"
-      },
-      {
-        "id": "kystyby-mushrooms",
-        "name": "Кыстыбый с грибами",
-        "note": "Кесадилья, картофельное пюре, шампиньоны, лук фри",
-        "amount": "260 г",
-        "image": "/logo.webp"
-      },
-      {
-        "id": "kystyby-meat",
-        "name": "Кыстыбый с мясом",
-        "note": "Кесадилья, куриный фарш, фирменный соус, кинза",
-        "amount": "300 г",
-        "image": "/logo.webp"
-      },
-      {
-        "id": "kystyby-cheese",
-        "name": "Кыстыбый с картофелем и сыром",
-        "note": "Кесадилья, картофельное пюре, сыр, зелень",
-        "amount": "260 г",
-        "image": "/logo.webp"
+        "id": "kystyby",
+        "name": "Кыстыбый",
+        "note": "Лаваш, картофельное пюре",
+        "amount": "",
+        "image": "/logo.webp",
+        "price": 150,
+        "extras": [
+          { "id": "pork", "name": "Свинина", "price": 40 },
+          { "id": "beef", "name": "Говядина", "price": 40 },
+          { "id": "chicken", "name": "Курица", "price": 40 },
+          { "id": "mushrooms", "name": "Грибы", "price": 30 },
+          { "id": "greens", "name": "Зелень", "price": 30 },
+          { "id": "cheese", "name": "Сыр", "price": 30 },
+          { "id": "cheddar", "name": "Сыр чеддер", "price": 30 }
+        ]
       },
       {
         "id": "pachat",
         "name": "Татарский пачат",
         "note": "Молочные оладьи, говяжья котлета, свежие овощи, пекинская капуста, фирменный соус",
         "amount": "330 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 290
       },
       {
         "id": "taras",
         "name": "Тарас бургер",
         "note": "Курица, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
         "amount": "250 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 230
       },
       {
         "id": "taras-pork",
         "name": "Тарас бургер свиной",
         "note": "Свинина, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
         "amount": "260 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 260
       },
       {
         "id": "taras-hot",
         "name": "Острый тарас бургер",
         "note": "Курица или свинина, свежие овощи, пармезан, халапеньо, соус кимчи, хлеб тарас",
         "amount": "260 г",
-        "image": "/logo.webp"
+        "image": "/logo.webp",
+        "price": 270
+      },
+      {
+        "id": "taras-beef",
+        "name": "Тарас бургер с говядиной",
+        "note": "",
+        "amount": "",
+        "image": "/logo.webp",
+        "price": 250
       }
     ]
   }

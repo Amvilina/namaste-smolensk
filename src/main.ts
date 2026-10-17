@@ -1,4 +1,4 @@
-import { dishControl, mountCart } from "./cart";
+import { dishControl, formatPrice, mountCart, orderPrice, refreshDish } from "./cart";
 import menu from "./menu.json";
 
 const board = document.querySelector("#menu");
@@ -24,6 +24,7 @@ for (const section of menu) {
   for (const dish of section.dishes) {
     const item = document.createElement("li");
     item.className = "dish";
+    if (dish.price == null) item.classList.add("is-off");
 
     const photo = document.createElement("img");
     photo.className = "dish-photo";
@@ -38,11 +39,34 @@ for (const section of menu) {
     const name = document.createElement("h3");
     name.textContent = dish.name;
 
-    const amount = document.createElement("p");
-    amount.className = "dish-amount";
-    amount.textContent = dish.amount;
+    const head = document.createElement("div");
+    head.className = "dish-head";
+    head.append(name);
 
-    copy.append(name, amount);
+    const picked = new Set<string>();
+    const extras = "extras" in dish && dish.extras ? dish.extras : [];
+    if (extras.length) item.classList.add("has-extras");
+
+    let showPrice = () => {};
+    if (dish.price != null) {
+      const price = document.createElement("p");
+      price.className = "dish-price";
+      showPrice = () => {
+        const value = orderPrice(dish, [...picked]);
+        if (value != null) price.textContent = formatPrice(value);
+      };
+      showPrice();
+      head.append(price);
+    }
+
+    copy.append(head);
+
+    if (dish.amount) {
+      const amount = document.createElement("p");
+      amount.className = "dish-amount";
+      amount.textContent = dish.amount;
+      copy.append(amount);
+    }
 
     if (dish.note) {
       const note = document.createElement("p");
@@ -51,7 +75,49 @@ for (const section of menu) {
       copy.append(note);
     }
 
-    item.append(photo, copy, dishControl(dish));
+    if (extras.length) {
+      const group = document.createElement("div");
+      group.className = "extras";
+      const heading = document.createElement("p");
+      heading.className = "extras-title";
+      heading.textContent = "Начинки";
+      const table = document.createElement("div");
+      table.className = "extras-table";
+      group.append(heading, table);
+      for (const extra of extras) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "extra";
+        button.setAttribute("aria-pressed", "false");
+        const mark = document.createElement("img");
+        mark.className = "extra-icon";
+        mark.src = "/logo.webp";
+        mark.alt = "";
+        mark.width = 885;
+        mark.height = 808;
+        const label = document.createElement("span");
+        label.className = "extra-name";
+        label.textContent = extra.name;
+        const cost = document.createElement("span");
+        cost.className = "extra-price";
+        cost.textContent = formatPrice(extra.price);
+        button.append(mark, label, cost);
+        button.addEventListener("click", () => {
+          if (picked.has(extra.id)) picked.delete(extra.id);
+          else picked.add(extra.id);
+          const on = picked.has(extra.id);
+          button.classList.toggle("is-on", on);
+          button.setAttribute("aria-pressed", on ? "true" : "false");
+          showPrice();
+          refreshDish(dish.id);
+        });
+        table.append(button);
+      }
+      item.append(group);
+    }
+
+    item.append(photo, copy, dishControl(dish, extras.length ? () => [...picked] : undefined));
+
     list.append(item);
   }
 
