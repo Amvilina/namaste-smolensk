@@ -34,6 +34,21 @@
     "title": "Напитки",
     "dishes": [
       {
+        "id": "coffee",
+        "name": "Кофе",
+        "note": "",
+        "amount": "0,3 л",
+        "image": "/coffee.webp",
+        "price": 50,
+        "extras": [
+          { "id": "milk", "name": "Молоко", "price": 10, "image": "/extras/milk.webp" },
+          { "id": "cream", "name": "Сливки", "price": 20, "image": "/extras/cream.webp" },
+          { "id": "mint", "name": "Мятный сироп", "price": 40, "image": "/extras/mint-syrup.webp" },
+          { "id": "lemon", "name": "Лимон", "price": 10, "image": "/extras/lemon.webp" },
+          { "id": "orange", "name": "Апельсин", "price": 10, "image": "/extras/orange.webp" }
+        ]
+      },
+      {
         "id": "water",
         "name": "Вода газ/негаз",
         "note": "",
@@ -63,14 +78,6 @@
         "amount": "0,5 л",
         "image": "/lemonade.webp",
         "price": 80
-      },
-      {
-        "id": "coffee",
-        "name": "Кофе",
-        "note": "",
-        "amount": "0,3 л",
-        "image": "/coffee.webp",
-        "price": 100
       },
       {
         "id": "tea",

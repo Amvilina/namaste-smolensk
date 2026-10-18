@@ -121,7 +121,7 @@ for (const section of menu) {
       group.className = "extras";
       const heading = document.createElement("p");
       heading.className = "extras-title";
-      heading.textContent = "Начинки";
+      heading.textContent = "Добавки";
       const table = document.createElement("div");
       table.className = "extras-table";
       group.append(heading, table);
