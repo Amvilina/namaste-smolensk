@@ -1,0 +1,26 @@
+---
+description: Промпты для фото блюд и мультяшных картинок меню
+alwaysApply: true
+---
+
+# Промпты картинок
+
+Кадр квадратный, 1:1. В промпт подставляй только само блюдо или предмет. Стиль не меняй.
+
+## Блюда
+
+Реалистичное фото для карточки меню.
+
+```
+Same locked menu photo style: square frame, food fills about 90 percent, shot from 40 degrees above, soft daylight from the upper left, warm natural color, appetizing homemade takeaway, not glossy advertising. Background is perfectly flat pure white #FFFFFF, no table edge, no props, no text, no hands, no logo.
+```
+
+Напитки в том же ключе: простой прозрачный стакан, если это не бутылка или банка. Небольшая тень после вырезки допустима.
+
+## Мультяшные
+
+Плоский рисунок с чёрным контуром, как герой и начинки кыстыбыя. Один предмет, минималистично.
+
+```
+One minimalist cartoon food sticker, same family as a flat vector menu illustration: thick even black outline, flat bright colors, simple shapes, a little cute, not a photo, not 3D, no text, no cast shadow. Centered, filling most of the square. Background is perfectly flat pure white #FFFFFF.
+```
