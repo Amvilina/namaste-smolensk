@@ -316,7 +316,11 @@ function unlockScroll() {
   document.body.style.left = "";
   document.body.style.right = "";
   document.body.style.width = "";
+  const root = document.documentElement;
+  const behavior = root.style.scrollBehavior;
+  root.style.scrollBehavior = "auto";
   window.scrollTo(0, scrollY);
+  root.style.scrollBehavior = behavior;
 }
 
 export function mountCart() {
