@@ -87,6 +87,7 @@ for (const section of menu) {
     const picked = new Set<string>();
     const extras = "extras" in dish && dish.extras ? dish.extras : [];
     if (extras.length) item.classList.add("has-extras");
+    if (!extras.length && dish.note.length < 40) item.classList.add("is-brief");
 
     copy.append(nameRow);
 
