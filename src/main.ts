@@ -132,10 +132,10 @@ for (const section of menu) {
         button.setAttribute("aria-pressed", "false");
         const mark = document.createElement("img");
         mark.className = "extra-icon";
-        mark.src = "/logo.webp";
+        mark.src = extra.image;
         mark.alt = "";
-        mark.width = 885;
-        mark.height = 808;
+        mark.width = 512;
+        mark.height = 512;
         const label = document.createElement("span");
         label.className = "extra-name";
         label.textContent = extra.name;
