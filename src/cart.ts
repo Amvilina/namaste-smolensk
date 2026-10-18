@@ -342,10 +342,13 @@ export function mountCart() {
   });
 
   dialog.className = "cart-dialog";
-  dialog.setAttribute("aria-label", "Корзина");
+  dialog.setAttribute("aria-labelledby", "cart-title");
 
   const head = document.createElement("div");
   head.className = "cart-head";
+  const title = document.createElement("h2");
+  title.id = "cart-title";
+  title.textContent = "КОРЗИНА";
   const close = document.createElement("button");
   close.type = "button";
   close.className = "cart-close";
@@ -353,7 +356,7 @@ export function mountCart() {
   close.innerHTML =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
   close.addEventListener("click", () => dialog.close());
-  head.append(close);
+  head.append(title, close);
 
   lines.className = "cart-lines";
   sum.className = "cart-total";

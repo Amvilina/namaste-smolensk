@@ -157,11 +157,15 @@
 }
 
 .cart-head {
-  position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
-  z-index: 2;
-  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0 0 1.1rem;
+}
+
+.cart-head h2 {
+  font-size: 1.45rem;
 }
 
 .cart-close {
@@ -258,7 +262,6 @@
   gap: 1.25rem;
   align-items: center;
   min-height: 14rem;
-  padding-right: 2.5rem;
 }
 
 .cart-success img {
