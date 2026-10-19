@@ -193,9 +193,14 @@ function neat(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
+function plainCost(category: Category = state.costCategory): boolean {
+  return category === "wage" || category === "rent";
+}
+
 function costReady(): boolean {
   if (!neat(state.costTitle) || neat(state.costTitle).length > 80) return false;
   if (state.costCategory === "other" && (!neat(state.costLabel) || neat(state.costLabel).length > 80)) return false;
+  if (plainCost()) return state.costPrice !== null;
   return state.costDraft.length > 0 && state.costDraft.every((line) => line.amount !== null);
 }
 
@@ -221,6 +226,7 @@ function costGroups(): { day: string; items: Expense[] }[] {
 }
 
 function costDesk(): string {
+  const plain = plainCost();
   const total = state.costDraft.reduce((sum, line) => sum + (line.amount ?? 0), 0);
   return `
     <section>
@@ -238,18 +244,30 @@ function costDesk(): string {
             : ""
         }
       </div>
-      <label class="find cost-title">
+      ${
+        plain
+          ? `<div class="plain">
+        <label class="find cost-title">
+          <input data-cost-title value="${esc(state.costTitle)}" placeholder="Название" maxlength="80" autocomplete="off" />
+        </label>
+        <input class="rub-edit" data-cost-price inputmode="numeric" value="${state.costPrice ?? ""}" />
+      </div>`
+          : `<label class="find cost-title">
         <input data-cost-title value="${esc(state.costTitle)}" placeholder="Название" maxlength="80" autocomplete="off" />
       </label>
       <div class="adder">
         <input data-cost-item value="${esc(state.costItem)}" placeholder="Позиция" maxlength="80" autocomplete="off" />
         <input class="rub-edit" data-cost-price inputmode="numeric" value="${state.costPrice ?? ""}" />
         <span class="step"><button type="button" data-add-cost aria-label="Добавить">+</button></span>
-      </div>
+      </div>`
+      }
       <div class="slip">
-        ${state.costDraft
-          .map(
-            (line) => `<article class="cost-line">
+        ${
+          plain
+            ? ""
+            : state.costDraft
+                .map(
+                  (line) => `<article class="cost-line">
               <div class="line-name">${esc(line.name)}</div>
               <div class="line-tools">
                 ${
@@ -260,15 +278,17 @@ function costDesk(): string {
                 <button class="drop" type="button" data-drop-cost-line="${esc(line.key)}" aria-label="Убрать">×</button>
               </div>
             </article>`,
-          )
-          .join("")}
-        ${state.costDraft.length ? `<p class="total">${rub(total)}</p>` : ""}
+                )
+                .join("")
+        }
+        ${!plain && state.costDraft.length ? `<p class="total">${rub(total)}</p>` : ""}
         <div>
           ${
-            state.costEditing && state.costDraft.length === 0
+            state.costEditing && !plain && state.costDraft.length === 0
               ? `<button class="record" type="button" data-drop-cost>Удалить</button>`
               : `<button class="record" type="button" data-save-cost ${costReady() ? "" : "disabled"}>${state.costEditing ? "Сохранить" : "Записать"}</button>`
           }
+          ${state.costEditing && plain ? `<button class="ghost" type="button" data-drop-cost>Удалить</button>` : ""}
           ${state.costEditing ? `<button class="ghost" type="button" data-cancel-cost>Отмена</button>` : ""}
         </div>
         ${state.costError ? `<p class="miss">${esc(state.costError)}</p>` : ""}
@@ -287,13 +307,15 @@ function costDesk(): string {
                       <span class="tag">${esc(item.label)}</span>
                       <div class="bill-title">${esc(item.title)}</div>
                     </div>
-                    <ul class="bill-lines">
+                    ${
+                      plainCost(item.category)
+                        ? ""
+                        : `<ul class="bill-lines">
                       ${item.lines
-                        .map(
-                          (line) => `<li><span>${esc(line.name)}</span><b>${rub(line.amount)}</b></li>`,
-                        )
+                        .map((line) => `<li><span>${esc(line.name)}</span><b>${rub(line.amount)}</b></li>`)
                         .join("")}
-                    </ul>
+                    </ul>`
+                    }
                     <div class="bill-sum">${rub(item.lines.reduce((sum, line) => sum + line.amount, 0))}</div>
                     <button type="button" data-edit-cost="${esc(item.id)}">Править</button>
                   </article>`,
@@ -767,7 +789,9 @@ async function saveCost(): Promise<void> {
       category: state.costCategory,
       title: neat(state.costTitle),
       ...(state.costCategory === "other" ? { label: neat(state.costLabel) } : {}),
-      lines: state.costDraft.map((line) => ({ name: line.name, amount: line.amount })),
+      lines: plainCost()
+        ? [{ name: neat(state.costTitle), amount: state.costPrice ?? 0 }]
+        : state.costDraft.map((line) => ({ name: line.name, amount: line.amount })),
       ...(state.costEditing ? {} : { day: state.costDay }),
     }),
   });
@@ -803,12 +827,14 @@ function editCost(id: string): void {
   state.costLabel = item.category === "other" ? item.label : "";
   state.costTitle = item.title;
   state.costItem = "";
-  state.costPrice = 0;
-  state.costDraft = item.lines.map((line) => ({
-    key: lineKey(),
-    name: line.name,
-    amount: line.amount,
-  }));
+  state.costPrice = plainCost(item.category) ? item.lines.reduce((sum, line) => sum + line.amount, 0) : 0;
+  state.costDraft = plainCost(item.category)
+    ? []
+    : item.lines.map((line) => ({
+        key: lineKey(),
+        name: line.name,
+        amount: line.amount,
+      }));
   state.costError = "";
   state.costFocus = null;
   paint();
@@ -953,6 +979,8 @@ root.addEventListener("input", (event) => {
     const digits = target.value.replace(/\D/g, "");
     state.costPrice = digits === "" ? null : Number(digits);
     target.value = digits;
+    const record = root.querySelector<HTMLButtonElement>("[data-save-cost]");
+    if (record) record.disabled = !costReady();
     return;
   }
   if (target.closest(".find")) {

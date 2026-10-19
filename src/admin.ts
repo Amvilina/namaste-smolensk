@@ -8,6 +8,7 @@ type Sale = {
 type Expense = {
   id: string;
   day: string;
+  category: "products" | "tech" | "wage" | "rent" | "other";
   label: string;
   title: string;
   lines: { name: string; amount: number }[];
@@ -128,6 +129,9 @@ function pickedView(): string {
   const costItems = costs
     .map((item) => {
       const sum = item.lines.reduce((total, line) => total + line.amount, 0);
+      if (item.category === "wage" || item.category === "rent") {
+        return `<li>${esc(item.label)} · ${esc(item.title)} · ${rub(sum)}</li>`;
+      }
       const lines = item.lines.map((line) => `${line.name} ${rub(line.amount)}`).join(", ");
       return `<li>${esc(item.label)} · ${esc(item.title)} · ${esc(lines)} · ${rub(sum)}</li>`;
     })
