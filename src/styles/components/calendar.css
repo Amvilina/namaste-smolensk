@@ -10,13 +10,13 @@
   margin-bottom: 0.7rem;
 }
 
-.cal-nav h2 {
+.cal-title {
   margin: 0;
   font-size: 1.15rem;
   text-align: center;
 }
 
-.cal-nav button {
+.cal-arrow {
   display: grid;
   place-items: center;
   width: 2.5rem;
@@ -28,17 +28,17 @@
   color: oklch(0.28 0.03 75);
 }
 
-.cal-nav button:disabled {
+.cal-arrow:disabled {
   opacity: 0.35;
 }
 
-.cal-nav svg {
+.cal-arrow svg {
   display: block;
   width: 1.2rem;
   height: 1.2rem;
 }
 
-.cal-nav [data-next] svg {
+.cal-next svg {
   transform: scaleX(-1);
 }
 
@@ -53,14 +53,14 @@
   margin-bottom: 0.25rem;
 }
 
-.cal-week span {
+.cal-dow {
   text-align: center;
   font-size: 0.78rem;
   line-height: 1.2;
   color: var(--color-muted);
 }
 
-.cal-grid button {
+.cal-day {
   position: relative;
   display: flex;
   align-items: center;
@@ -77,11 +77,11 @@
   line-height: 1;
 }
 
-.cal-grid button.is-on {
+.cal-day.is-on {
   background: #fed502;
 }
 
-.cal-grid button.has::after {
+.cal-day.has::after {
   content: "";
   position: absolute;
   bottom: 0.28rem;
@@ -93,73 +93,6 @@
   background: oklch(0.28 0.03 75);
 }
 
-.cal-grid button:disabled {
+.cal-day:disabled {
   color: oklch(0.75 0.02 75);
-}
-
-.picked {
-  margin-top: 1.6rem;
-}
-
-.picked-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.8rem;
-}
-
-.picked-bar h2 {
-  margin: 0;
-}
-
-.picked-bar a {
-  padding: 0.45rem 0.85rem;
-  border: 2px solid oklch(0.28 0.03 75);
-  border-radius: 999px;
-  background: #fed502;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.day-cols {
-  display: grid;
-  gap: 0.8rem;
-  align-items: start;
-}
-
-.day-cols section {
-  min-width: 0;
-  padding: 0.85rem 0.9rem 0.95rem;
-  border-radius: 0.75rem;
-  background: oklch(0.96 0.05 100);
-  box-shadow: inset 0 0 0 0.18rem #fff;
-}
-
-.day-cols section:nth-child(2) {
-  background: oklch(0.93 0.035 80);
-}
-
-.day-cols h3 {
-  margin: 0 0 0.35rem;
-  font-size: 1rem;
-}
-
-.day-cols > section > ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.day-cols > section > ul > li + li {
-  margin-top: 1.15rem;
-  padding-top: 1.15rem;
-  border-top: 3px solid oklch(0.45 0.04 70);
-}
-
-@media (min-width: 64rem) {
-  .day-cols {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }

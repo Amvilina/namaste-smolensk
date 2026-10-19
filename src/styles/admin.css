@@ -3,5 +3,8 @@
 @import url("./reset.css");
 @import url("./tokens.css") layer(tokens);
 @import url("./base.css") layer(base);
-@import url("./components/worker.css") layer(components);
-@import url("./components/admin.css") layer(components);
+@import url("./components/desk.css") layer(components);
+@import url("./components/desk-nav.css") layer(components);
+@import url("./components/history.css") layer(components);
+@import url("./components/calendar.css") layer(components);
+@import url("./components/day-board.css") layer(components);

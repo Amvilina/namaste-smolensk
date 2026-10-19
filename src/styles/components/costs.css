@@ -1,0 +1,119 @@
+.cats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1.15rem;
+}
+
+.other {
+  flex: 1 1 10rem;
+  min-width: 8rem;
+}
+
+.other input {
+  width: 100%;
+  padding: 0.15rem 0;
+  border: none;
+  border-bottom: 2px solid oklch(0.28 0.03 75);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.other input:focus {
+  outline: none;
+  border-bottom-color: #c9a400;
+  box-shadow: inset 0 -2px 0 #fed502;
+}
+
+.other input::placeholder {
+  color: oklch(0.62 0.03 80);
+}
+
+.cost-title {
+  display: block;
+  margin-bottom: 1.15rem;
+}
+
+.plain {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.55rem;
+  margin-bottom: 1.15rem;
+}
+
+.plain .cost-title {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.plain .rub-edit {
+  flex: none;
+  width: 5.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.cost-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid oklch(0.91 0.02 95);
+}
+
+.cost-line .line-name {
+  min-width: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.adder {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.55rem;
+  margin-bottom: 0.35rem;
+}
+
+.adder input[data-off-name],
+.adder input[data-off-volume],
+.adder input[data-cost-item] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0;
+  border: none;
+  border-bottom: 2px solid oklch(0.28 0.03 75);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.7rem);
+}
+
+.adder input[data-off-volume] {
+  flex: 0.8;
+  font-family: var(--font-text);
+  font-size: 1.15rem;
+}
+
+.adder input[data-cost-item]:focus,
+.adder input[data-off-name]:focus,
+.adder input[data-off-volume]:focus {
+  outline: none;
+  border-bottom-color: #c9a400;
+  box-shadow: inset 0 -2px 0 #fed502;
+}
+
+.adder input[data-cost-item]::placeholder,
+.adder input[data-off-name]::placeholder,
+.adder input[data-off-volume]::placeholder {
+  color: oklch(0.62 0.03 80);
+}
+
+.adder .rub-edit {
+  flex: none;
+  width: 5.5rem;
+  margin-bottom: 0.15rem;
+}

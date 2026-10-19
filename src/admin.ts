@@ -85,12 +85,12 @@ function saleItem(sale: Sale): string {
   const lines = sale.lines
     .map((line) => {
       const extra = line.extras?.length ? `<em>${line.extras.map((item) => esc(item.name)).join(", ")}</em>` : "";
-      return `<li><span>${esc(line.name)}${extra}</span><span class="qty">× ${line.qty}</span><b>${rub(line.price * line.qty)}</b></li>`;
+      return `<li class="entry-row"><span class="entry-label">${esc(line.name)}${extra}</span><span class="qty">× ${line.qty}</span><b class="entry-sum">${rub(line.price * line.qty)}</b></li>`;
     })
     .join("");
   const card = sale.pay === "card";
-  return `<li>
-    <div class="entry-top"><span class="mark ${card ? "card" : "cash"}">${card ? "Безнал" : "Нал"}</span><b>${rub(sum)}</b></div>
+  return `<li class="day-item">
+    <div class="entry-top"><span class="mark ${card ? "card" : "cash"}">${card ? "Безнал" : "Нал"}</span><b class="entry-sum">${rub(sum)}</b></div>
     <ul class="entry-lines dishes">${lines}</ul>
   </li>`;
 }
@@ -108,18 +108,18 @@ function calendar(): string {
     const has = busy.has(day) ? " has" : "";
     const future = day > state.today;
     cells.push(
-      `<button type="button" data-day="${day}" class="${on}${has}"${future ? " disabled" : ""}><span>${date}</span></button>`,
+      `<button type="button" data-day="${day}" class="cal-day${on}${has}"${future ? " disabled" : ""}><span>${date}</span></button>`,
     );
   }
   while (cells.length % 7) cells.push("<span></span>");
   const atNow = state.year > Number(state.today.slice(0, 4)) || (state.year === Number(state.today.slice(0, 4)) && state.month >= Number(state.today.slice(5, 7)));
   return `<section class="cal">
     <div class="cal-nav">
-      <button type="button" data-prev aria-label="Предыдущий месяц">${CHEVRON}</button>
-      <h2>${esc(monthTitle(state.year, state.month))}</h2>
-      <button type="button" data-next aria-label="Следующий месяц"${atNow ? " disabled" : ""}>${CHEVRON}</button>
+      <button class="cal-arrow" type="button" data-prev aria-label="Предыдущий месяц">${CHEVRON}</button>
+      <h2 class="cal-title">${esc(monthTitle(state.year, state.month))}</h2>
+      <button class="cal-arrow cal-next" type="button" data-next aria-label="Следующий месяц"${atNow ? " disabled" : ""}>${CHEVRON}</button>
     </div>
-    <div class="cal-week">${WEEK.map((name) => `<span>${name}</span>`).join("")}</div>
+    <div class="cal-week">${WEEK.map((name) => `<span class="cal-dow">${name}</span>`).join("")}</div>
     <div class="cal-grid">${cells.join("")}</div>
   </section>`;
 }
@@ -137,10 +137,10 @@ function pickedView(): string {
         item.category === "wage" || item.category === "rent"
           ? ""
           : `<ul class="entry-lines positions">${item.lines
-              .map((line) => `<li><span>${esc(line.name)}</span><b>${rub(line.amount)}</b></li>`)
+              .map((line) => `<li class="entry-row"><span class="entry-label">${esc(line.name)}</span><b class="entry-sum">${rub(line.amount)}</b></li>`)
               .join("")}</ul>`;
-      return `<li>
-        <div class="entry-top"><span class="mark">${esc(item.label)}</span><b>${rub(sum)}</b></div>
+      return `<li class="day-item">
+        <div class="entry-top"><span class="mark">${esc(item.label)}</span><b class="entry-sum">${rub(sum)}</b></div>
         <p class="entry-name">${esc(item.title)}</p>
         ${lines}
       </li>`;
@@ -148,21 +148,21 @@ function pickedView(): string {
     .join("");
   const offItems = offs
     .map(
-      (item) => `<li>
-        <div class="entry-top"><span class="mark">${item.kind === "dish" ? "Блюда" : "Продукты"}</span><b class="vol">${esc(item.volume)}</b></div>
+      (item) => `<li class="day-item">
+        <div class="entry-top"><span class="mark">${item.kind === "dish" ? "Блюда" : "Продукты"}</span><b class="entry-sum vol">${esc(item.volume)}</b></div>
         <p class="entry-name">${esc(item.name)}</p>
       </li>`,
     )
     .join("");
   return `<section class="picked">
     <div class="picked-bar">
-      <h2>${esc(dayTitle(state.picked))}</h2>
-      <a href="/worker?day=${esc(state.picked)}">Редактировать</a>
+      <h2 class="picked-title">${esc(dayTitle(state.picked))}</h2>
+      <a class="leave" href="/worker?day=${esc(state.picked)}">Редактировать</a>
     </div>
     <div class="day-cols">
-      <section><h3>Продажи</h3><ul>${saleItems}</ul></section>
-      <section><h3>Затраты</h3><ul>${costItems}</ul></section>
-      <section><h3>Списания</h3><ul>${offItems}</ul></section>
+      <section class="day-card"><h3 class="day-card-title">Продажи</h3><ul class="day-list">${saleItems}</ul></section>
+      <section class="day-card is-alt"><h3 class="day-card-title">Затраты</h3><ul class="day-list">${costItems}</ul></section>
+      <section class="day-card"><h3 class="day-card-title">Списания</h3><ul class="day-list">${offItems}</ul></section>
     </div>
   </section>`;
 }

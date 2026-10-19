@@ -1,0 +1,56 @@
+.picked {
+  margin-top: 1.6rem;
+}
+
+.picked-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.picked-title {
+  margin: 0;
+}
+
+.day-cols {
+  display: grid;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.day-card {
+  min-width: 0;
+  padding: 0.85rem 0.9rem 0.95rem;
+  border-radius: 0.75rem;
+  background: oklch(0.96 0.05 100);
+  box-shadow: inset 0 0 0 0.18rem #fff;
+}
+
+.day-card.is-alt {
+  background: oklch(0.93 0.035 80);
+}
+
+.day-card-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.day-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-item + .day-item {
+  margin-top: 1.15rem;
+  padding-top: 1.15rem;
+  border-top: 3px solid oklch(0.45 0.04 70);
+}
+
+@media (min-width: 64rem) {
+  .day-cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

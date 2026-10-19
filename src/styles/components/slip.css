@@ -1,0 +1,136 @@
+.rub,
+.rub-edit {
+  border: 1px solid oklch(0.28 0.03 75);
+  border-radius: 0.4rem;
+  background: #fff;
+  padding: 0.12rem 0.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.rub-edit {
+  width: 4.5rem;
+  text-align: right;
+}
+
+.rub-edit:focus {
+  outline: 2px solid #fed502;
+  outline-offset: 2px;
+}
+
+.slip {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.4rem;
+}
+
+.line {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  grid-template-areas:
+    "photo name"
+    "photo tools";
+  gap: 0.15rem 0.7rem;
+  align-items: center;
+}
+
+.line img {
+  grid-area: photo;
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.line.is-plain {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.line-name {
+  grid-area: name;
+  font-weight: 600;
+}
+
+.line-amount {
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.line-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
+  grid-area: tools;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.step button {
+  width: 1.85rem;
+  height: 1.85rem;
+  border: 2px solid oklch(0.28 0.03 75);
+  border-radius: 50%;
+  background: #fed502;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.step b {
+  min-width: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.adds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  grid-column: 1 / -1;
+}
+
+.drop {
+  width: 1.85rem;
+  height: 1.85rem;
+  border: 2px solid oklch(0.28 0.03 75);
+  border-radius: 50%;
+  background: transparent;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.pay {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.total {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+}
+
+.record {
+  justify-self: start;
+  padding: 0.7rem 1.3rem;
+  border: 2px solid oklch(0.28 0.03 75);
+  border-radius: 999px;
+  background: #fed502;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.record:disabled {
+  border-color: oklch(0.72 0.01 95);
+  background: oklch(0.9 0.01 95);
+  color: oklch(0.62 0.01 90);
+}
+
+.ghost {
+  padding: 0.7rem 0.4rem;
+  font-weight: 600;
+}

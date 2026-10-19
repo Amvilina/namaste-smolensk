@@ -1,0 +1,158 @@
+.history {
+  min-width: 0;
+}
+
+.past {
+  display: grid;
+  gap: 1.1rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.past-day {
+  min-width: 0;
+}
+
+.past-date {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.past-card {
+  display: grid;
+  gap: 0.12rem;
+  width: 100%;
+  min-width: 0;
+  margin-top: 0.45rem;
+  padding: 0.7rem 0.85rem 0.5rem;
+  border-radius: 0.75rem;
+  box-shadow: inset 0 0 0 0.2rem #fff;
+}
+
+.past-card:nth-of-type(odd) {
+  background: oklch(0.96 0.05 100);
+}
+
+.past-card:nth-of-type(even) {
+  background: oklch(0.93 0.035 80);
+}
+
+.past-edit {
+  justify-self: start;
+  width: fit-content;
+  margin-top: 0.1rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.entry-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.entry-sum {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.entry-sum.vol {
+  max-width: 46%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.mark {
+  flex: none;
+  padding: 0.08rem 0.42rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px oklch(0.28 0.03 75);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.mark.cash {
+  background: #fed502;
+  box-shadow: none;
+}
+
+.mark.card {
+  background: oklch(0.28 0.03 75);
+  color: #fff;
+  box-shadow: none;
+}
+
+.entry-name,
+.entry-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.entry-name {
+  margin: 0.28rem 0 0;
+}
+
+.entry-lines {
+  display: grid;
+  margin: 0.28rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.22rem 0;
+}
+
+.dishes .entry-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.dishes .entry-row + .entry-row {
+  margin-top: 0.15rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed oklch(0.62 0.03 75);
+}
+
+.positions .entry-row + .entry-row {
+  margin-top: 0.15rem;
+  padding-top: 0.45rem;
+  border-top: 2px solid oklch(0.78 0.03 80);
+}
+
+.entry-lines em {
+  margin-left: 0.35rem;
+  color: var(--color-muted);
+  font-style: normal;
+  font-size: 0.88em;
+}
+
+.qty {
+  flex: none;
+  color: var(--color-muted);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (min-width: 52rem) {
+  .history {
+    position: sticky;
+    top: 5rem;
+  }
+}
