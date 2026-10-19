@@ -72,6 +72,28 @@ function monthTitle(year: number, month: number): string {
   );
 }
 
+function salesMoney(list: Sale[]): number {
+  return list.reduce((total, sale) => total + sale.lines.reduce((sum, line) => sum + line.price * line.qty, 0), 0);
+}
+
+function costsMoney(list: Expense[]): number {
+  return list.reduce((total, item) => total + item.lines.reduce((sum, line) => sum + line.amount, 0), 0);
+}
+
+function inMonth(day: string): boolean {
+  return day.startsWith(`${state.year}-${String(state.month).padStart(2, "0")}-`);
+}
+
+function monthStats(): string {
+  const saleSum = salesMoney(state.sales.filter((item) => inMonth(item.day)));
+  const costSum = costsMoney(state.costs.filter((item) => inMonth(item.day)));
+  return `<section class="month-stats">
+    <p class="month-stat"><span>Продажи</span><b>${rub(saleSum)}</b></p>
+    <p class="month-stat"><span>Затраты</span><b>${rub(costSum)}</b></p>
+    <p class="month-stat"><span>Итог</span><b>${rub(saleSum - costSum)}</b></p>
+  </section>`;
+}
+
 function busyDays(): Set<string> {
   const set = new Set<string>();
   for (const item of state.sales) set.add(item.day);
@@ -129,8 +151,8 @@ function pickedView(): string {
   const sales = state.sales.filter((item) => item.day === state.picked);
   const costs = state.costs.filter((item) => item.day === state.picked);
   const offs = state.offs.filter((item) => item.day === state.picked);
-  const saleSum = sales.reduce((total, sale) => total + sale.lines.reduce((sum, line) => sum + line.price * line.qty, 0), 0);
-  const costSum = costs.reduce((total, item) => total + item.lines.reduce((sum, line) => sum + line.amount, 0), 0);
+  const saleSum = salesMoney(sales);
+  const costSum = costsMoney(costs);
   const saleItems = sales.map((item) => saleItem(item)).join("");
   const costItems = costs
     .map((item) => {
@@ -181,7 +203,7 @@ function paint(): void {
       <b>Календарь</b>
       <form method="post" action="/logout"><button class="leave" type="submit">Выйти</button></form>
     </header>
-    <main class="desk">${calendar()}${pickedView()}</main>
+    <main class="desk">${monthStats()}${calendar()}${pickedView()}</main>
   `;
 }
 
