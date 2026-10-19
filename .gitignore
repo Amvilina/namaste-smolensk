@@ -1,5 +1,6 @@
 node_modules
 dist
+backend/data
 .DS_Store
 *.local
 *.png

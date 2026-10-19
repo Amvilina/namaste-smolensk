@@ -1,6 +1,22 @@
 services:
+  backend:
+    build: ./backend
+    environment:
+      PORT: "8080"
+      DATA_DIR: /data
+    volumes:
+      - namaste-data:/data
+    expose:
+      - "8080"
+    restart: unless-stopped
+
   web:
     build: .
     ports:
       - "80:80"
+    depends_on:
+      - backend
     restart: unless-stopped
+
+volumes:
+  namaste-data:
