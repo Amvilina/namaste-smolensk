@@ -80,15 +80,19 @@ function busyDays(): Set<string> {
   return set;
 }
 
-function saleLine(sale: Sale): string {
-  const names = sale.lines
-    .map((line) => {
-      const extra = line.extras?.length ? ` (${line.extras.map((item) => item.name).join(", ")})` : "";
-      return `${line.name}${extra} × ${line.qty}`;
-    })
-    .join(", ");
+function saleItem(sale: Sale): string {
   const sum = sale.lines.reduce((total, line) => total + line.price * line.qty, 0);
-  return `${sale.pay === "card" ? "Безнал" : "Нал"} · ${names} · ${rub(sum)}`;
+  const lines = sale.lines
+    .map((line) => {
+      const extra = line.extras?.length ? `<em>${line.extras.map((item) => esc(item.name)).join(", ")}</em>` : "";
+      return `<li><span>${esc(line.name)}${extra}</span><span class="qty">× ${line.qty}</span><b>${rub(line.price * line.qty)}</b></li>`;
+    })
+    .join("");
+  const card = sale.pay === "card";
+  return `<li>
+    <div class="entry-top"><span class="mark ${card ? "card" : "cash"}">${card ? "Безнал" : "Нал"}</span><b>${rub(sum)}</b></div>
+    <ul class="entry-lines dishes">${lines}</ul>
+  </li>`;
 }
 
 function calendar(): string {
@@ -125,19 +129,30 @@ function pickedView(): string {
   const sales = state.sales.filter((item) => item.day === state.picked);
   const costs = state.costs.filter((item) => item.day === state.picked);
   const offs = state.offs.filter((item) => item.day === state.picked);
-  const saleItems = sales.map((item) => `<li>${esc(saleLine(item))}</li>`).join("");
+  const saleItems = sales.map((item) => saleItem(item)).join("");
   const costItems = costs
     .map((item) => {
       const sum = item.lines.reduce((total, line) => total + line.amount, 0);
-      if (item.category === "wage" || item.category === "rent") {
-        return `<li>${esc(item.label)} · ${esc(item.title)} · ${rub(sum)}</li>`;
-      }
-      const lines = item.lines.map((line) => `${line.name} ${rub(line.amount)}`).join(", ");
-      return `<li>${esc(item.label)} · ${esc(item.title)} · ${esc(lines)} · ${rub(sum)}</li>`;
+      const lines =
+        item.category === "wage" || item.category === "rent"
+          ? ""
+          : `<ul class="entry-lines positions">${item.lines
+              .map((line) => `<li><span>${esc(line.name)}</span><b>${rub(line.amount)}</b></li>`)
+              .join("")}</ul>`;
+      return `<li>
+        <div class="entry-top"><span class="mark">${esc(item.label)}</span><b>${rub(sum)}</b></div>
+        <p class="entry-name">${esc(item.title)}</p>
+        ${lines}
+      </li>`;
     })
     .join("");
   const offItems = offs
-    .map((item) => `<li>${item.kind === "dish" ? "Блюда" : "Продукты"} · ${esc(item.name)} · ${esc(item.volume)}</li>`)
+    .map(
+      (item) => `<li>
+        <div class="entry-top"><span class="mark">${item.kind === "dish" ? "Блюда" : "Продукты"}</span><b class="vol">${esc(item.volume)}</b></div>
+        <p class="entry-name">${esc(item.name)}</p>
+      </li>`,
+    )
     .join("");
   return `<section class="picked">
     <div class="picked-bar">

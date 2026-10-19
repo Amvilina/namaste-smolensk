@@ -302,21 +302,16 @@ function costDesk(): string {
               <h2>${esc(dayLabel(group.day))}</h2>
               ${group.items
                 .map(
-                  (item) => `<article class="bill">
-                    <div class="bill-top">
-                      <span class="tag">${esc(item.label)}</span>
-                      <div class="bill-title">${esc(item.title)}</div>
-                    </div>
+                  (item) => `<article>
+                    <div class="entry-top"><span class="mark">${esc(item.label)}</span><b>${rub(item.lines.reduce((sum, line) => sum + line.amount, 0))}</b></div>
+                    <p class="entry-name">${esc(item.title)}</p>
                     ${
                       plainCost(item.category)
                         ? ""
-                        : `<ul class="bill-lines">
-                      ${item.lines
-                        .map((line) => `<li><span>${esc(line.name)}</span><b>${rub(line.amount)}</b></li>`)
-                        .join("")}
-                    </ul>`
+                        : `<ul class="entry-lines positions">${item.lines
+                            .map((line) => `<li><span>${esc(line.name)}</span><b>${rub(line.amount)}</b></li>`)
+                            .join("")}</ul>`
                     }
-                    <div class="bill-sum">${rub(item.lines.reduce((sum, line) => sum + line.amount, 0))}</div>
                     <button type="button" data-edit-cost="${esc(item.id)}">Править</button>
                   </article>`,
                 )
@@ -447,11 +442,9 @@ function offDesk(): string {
               <h2>${esc(dayLabel(group.day))}</h2>
               ${group.items
                 .map(
-                  (item) => `<article class="bill">
-                    <div class="bill-top"><span class="tag">${item.kind === "dish" ? "Блюда" : "Продукты"}</span></div>
-                    <ul class="bill-lines">
-                      <li><span>${esc(item.name)}</span><b class="vol">${esc(item.volume)}</b></li>
-                    </ul>
+                  (item) => `<article>
+                    <div class="entry-top"><span class="mark">${item.kind === "dish" ? "Блюда" : "Продукты"}</span><b class="vol">${esc(item.volume)}</b></div>
+                    <p class="entry-name">${esc(item.name)}</p>
                     <button type="button" data-edit-off="${esc(item.id)}">Править</button>
                   </article>`,
                 )
@@ -622,9 +615,13 @@ function paint(): void {
                   ${group.sales
                     .map(
                       (sale) => `<article>
-                        <div>${sale.lines.map((line) => `${esc(line.name)}${line.extras?.length ? ` (${line.extras.map((extra) => esc(extra.name)).join(", ")})` : ""} × ${line.qty}`).join(", ")}</div>
-                        <span class="rub">${rub(sale.lines.reduce((sum, line) => sum + line.price * line.qty, 0))}</span>
-                        <span class="pay-mark">${sale.pay === "card" ? "Безнал" : "Нал"}</span>
+                        <div class="entry-top"><span class="mark ${sale.pay === "card" ? "card" : "cash"}">${sale.pay === "card" ? "Безнал" : "Нал"}</span><b>${rub(sale.lines.reduce((sum, line) => sum + line.price * line.qty, 0))}</b></div>
+                        <ul class="entry-lines dishes">${sale.lines
+                          .map((line) => {
+                            const extra = line.extras?.length ? `<em>${line.extras.map((item) => esc(item.name)).join(", ")}</em>` : "";
+                            return `<li><span>${esc(line.name)}${extra}</span><span class="qty">× ${line.qty}</span><b>${rub(line.price * line.qty)}</b></li>`;
+                          })
+                          .join("")}</ul>
                         <button type="button" data-edit="${esc(sale.id)}">Править</button>
                       </article>`,
                     )

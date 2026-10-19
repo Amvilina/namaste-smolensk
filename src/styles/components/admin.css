@@ -146,18 +146,16 @@
   font-size: 1rem;
 }
 
-.day-cols ul {
+.day-cols > section > ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.day-cols li + li {
-  margin-top: 0.35rem;
-}
-
-.day-cols li {
-  overflow-wrap: anywhere;
+.day-cols > section > ul > li + li {
+  margin-top: 1.15rem;
+  padding-top: 1.15rem;
+  border-top: 3px solid oklch(0.45 0.04 70);
 }
 
 @media (min-width: 64rem) {
