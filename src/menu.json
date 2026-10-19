@@ -279,13 +279,15 @@
         "image": "/kystyby.webp",
         "price": 150,
         "extras": [
-          { "id": "pork", "name": "Свинина", "price": 40, "image": "/extras/pork.webp" },
+          { "id": "pork", "name": "Свинина", "price": 50, "image": "/extras/pork.webp" },
           { "id": "beef", "name": "Говядина", "price": 40, "image": "/extras/beef.webp" },
           { "id": "chicken", "name": "Курица", "price": 40, "image": "/extras/chicken.webp" },
+          { "id": "onion", "name": "Лук карамелизированный", "price": 30, "image": "/extras/onion.webp" },
           { "id": "mushrooms", "name": "Грибы", "price": 30, "image": "/extras/mushrooms.webp" },
           { "id": "greens", "name": "Зелень", "price": 30, "image": "/extras/greens.webp" },
           { "id": "cheese", "name": "Сыр", "price": 30, "image": "/extras/cheese.webp" },
-          { "id": "cheddar", "name": "Сыр чеддер", "price": 30, "image": "/extras/cheddar.webp" }
+          { "id": "cheddar", "name": "Сыр чеддер", "price": 30, "image": "/extras/cheddar.webp" },
+          { "id": "cremette", "name": "Сыр креметто", "price": 30, "image": "/extras/cremette.webp" }
         ]
       },
       {
