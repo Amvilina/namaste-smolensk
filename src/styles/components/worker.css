@@ -10,9 +10,10 @@
   background: #fff;
 }
 
-.desk-bar h1 {
-  margin: 0;
-  font-size: clamp(1.2rem, 1rem + 1vw, 1.6rem);
+.modes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
 .leave {
@@ -42,20 +43,6 @@
   font-family: var(--font-display);
   font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.2rem);
   line-height: 1.1;
-}
-
-.shift {
-  width: 2rem;
-  height: 2rem;
-  border: 2px solid oklch(0.28 0.03 75);
-  border-radius: 50%;
-  background: #fed502;
-  font-size: 1.3rem;
-  line-height: 1;
-}
-
-.shift:disabled {
-  opacity: 0.35;
 }
 
 .find {
@@ -103,6 +90,10 @@
 .hits button:hover,
 .hits button:focus-visible {
   background: oklch(0.97 0.06 98);
+}
+
+.hits button.is-own {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .hits img,
@@ -236,6 +227,163 @@
   gap: 0.35rem;
 }
 
+.cats {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 1.15rem;
+}
+
+.cats .other {
+  flex: 1 1 10rem;
+  min-width: 8rem;
+}
+
+.cats .other input {
+  width: 100%;
+  padding: 0.15rem 0;
+  border: none;
+  border-bottom: 2px solid oklch(0.28 0.03 75);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+.cats .other input:focus {
+  outline: none;
+  border-bottom-color: #c9a400;
+  box-shadow: inset 0 -2px 0 #fed502;
+}
+
+.cats .other input::placeholder {
+  color: oklch(0.62 0.03 80);
+}
+
+.cost-title {
+  display: block;
+  margin-bottom: 1.15rem;
+}
+
+.cost-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid oklch(0.91 0.02 95);
+}
+
+.cost-line .line-name {
+  min-width: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.adder {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.55rem;
+  margin-bottom: 0.35rem;
+}
+
+.adder input[data-cost-item] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0;
+  border: none;
+  border-bottom: 2px solid oklch(0.28 0.03 75);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 1rem + 1vw, 1.7rem);
+}
+
+.adder input[data-cost-item]:focus {
+  outline: none;
+  border-bottom-color: #c9a400;
+  box-shadow: inset 0 -2px 0 #fed502;
+}
+
+.adder input[data-cost-item]::placeholder {
+  color: oklch(0.62 0.03 80);
+}
+
+.adder .rub-edit {
+  flex: none;
+  width: 5.5rem;
+  margin-bottom: 0.15rem;
+}
+
+.history,
+.past,
+.past li,
+.bill {
+  min-width: 0;
+}
+
+.bill {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  padding-block: 0.65rem;
+}
+
+.bill-top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.tag {
+  flex: none;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: #fed502;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.bill-title {
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.bill-lines {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bill-lines li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.bill-lines span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.bill-lines b {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bill-sum {
+  justify-self: end;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
 .pay-mark {
   color: var(--color-muted);
   font-size: 0.92rem;
@@ -284,6 +432,7 @@
 .past article {
   display: grid;
   gap: 0.2rem;
+  min-width: 0;
   padding-block: 0.35rem;
 }
 

@@ -1,5 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loadCatalog, type CatalogDish } from "./catalog.ts";
+import { fileExpenses, type ExpenseStore } from "./expenses.ts";
+import { handleExpenses } from "./expenses-api.ts";
 import { loginPage, emptyPage } from "./pages.ts";
 import { handleApi } from "./sales-api.ts";
 import { fileSales, type SalesStore } from "./sales.ts";
@@ -18,6 +20,7 @@ export type AppOptions = {
   now?: () => number;
   catalog?: CatalogDish[];
   sales?: SalesStore;
+  expenses?: ExpenseStore;
 };
 
 type Failure = { count: number; reset: number };
@@ -86,7 +89,9 @@ export function createApp(options: AppOptions) {
   const secret = options.secret;
   const now = options.now ?? Date.now;
   const catalog = options.catalog ?? [];
-  const sales = options.sales ?? fileSales(process.env.DATA_DIR ?? "/tmp/namaste");
+  const dataDir = process.env.DATA_DIR ?? "/tmp/namaste";
+  const sales = options.sales ?? fileSales(dataDir);
+  const expenses = options.expenses ?? fileExpenses(dataDir);
   const failures = new Map<string, Failure>();
 
   function openSession(req: IncomingMessage): { user: StoredUser; session: Session } | null {
@@ -126,6 +131,20 @@ export function createApp(options: AppOptions) {
     const url = new URL(req.url ?? "/", "http://namaste.local");
     const method = req.method ?? "GET";
     const opened = openSession(req);
+
+    if (
+      await handleExpenses({
+        req,
+        res,
+        url,
+        session: opened?.session ?? null,
+        expenses,
+        now,
+        renew: renewedCookie,
+      })
+    ) {
+      return;
+    }
 
     if (
       await handleApi({
