@@ -1,0 +1,6 @@
+node_modules
+dist
+.git
+photos
+.DS_Store
+*.png
