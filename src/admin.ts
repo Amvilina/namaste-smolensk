@@ -129,6 +129,8 @@ function pickedView(): string {
   const sales = state.sales.filter((item) => item.day === state.picked);
   const costs = state.costs.filter((item) => item.day === state.picked);
   const offs = state.offs.filter((item) => item.day === state.picked);
+  const saleSum = sales.reduce((total, sale) => total + sale.lines.reduce((sum, line) => sum + line.price * line.qty, 0), 0);
+  const costSum = costs.reduce((total, item) => total + item.lines.reduce((sum, line) => sum + line.amount, 0), 0);
   const saleItems = sales.map((item) => saleItem(item)).join("");
   const costItems = costs
     .map((item) => {
@@ -160,9 +162,9 @@ function pickedView(): string {
       <a class="leave" href="/worker?day=${esc(state.picked)}">Редактировать</a>
     </div>
     <div class="day-cols">
-      <section class="day-card"><h3 class="day-card-title">Продажи</h3><ul class="day-list">${saleItems}</ul></section>
-      <section class="day-card is-alt"><h3 class="day-card-title">Затраты</h3><ul class="day-list">${costItems}</ul></section>
-      <section class="day-card"><h3 class="day-card-title">Списания</h3><ul class="day-list">${offItems}</ul></section>
+      <div class="day-col"><div class="day-col-head"><h3 class="day-card-title">Продажи</h3><b class="day-total">${rub(saleSum)}</b></div><section class="day-card"><ul class="day-list">${saleItems}</ul></section></div>
+      <div class="day-col"><div class="day-col-head"><h3 class="day-card-title">Затраты</h3><b class="day-total">${rub(costSum)}</b></div><section class="day-card is-alt"><ul class="day-list">${costItems}</ul></section></div>
+      <div class="day-col"><div class="day-col-head"><h3 class="day-card-title">Списания</h3><b class="day-total is-empty" aria-hidden="true">&nbsp;</b></div><section class="day-card"><ul class="day-list">${offItems}</ul></section></div>
     </div>
   </section>`;
 }
