@@ -43,7 +43,7 @@ export async function handleWriteoffs(ctx: Ctx): Promise<boolean> {
   const { req, res, url } = ctx;
   if (!url.pathname.startsWith("/api/writeoffs")) return false;
   const method = req.method ?? "GET";
-  if (!ctx.session || ctx.session.role !== "worker") {
+  if (!ctx.session || (ctx.session.role !== "worker" && ctx.session.role !== "admin")) {
     send(res, ctx.session ? 403 : 401, { error: ctx.session ? "forbidden" : "unauthorized" });
     return true;
   }
@@ -57,14 +57,16 @@ export async function handleWriteoffs(ctx: Ctx): Promise<boolean> {
   }
 
   if (method === "POST" && url.pathname === "/api/writeoffs") {
-    const body = (await readJson(req)) as { kind?: unknown; name?: unknown; volume?: unknown } | null;
+    const body = (await readJson(req)) as { kind?: unknown; name?: unknown; volume?: unknown; day?: unknown } | null;
     const parsed = parseWriteoffBody(body);
-    if (!parsed) {
+    const now = ctx.now();
+    const today = moscowDay(now);
+    const day = ctx.session.role === "admin" ? parseDay(body?.day, today) : today;
+    if (!parsed || !day) {
       send(res, 400, { error: "bad" }, cookie);
       return true;
     }
-    const now = ctx.now();
-    const item = newWriteoff(moscowDay(now), parsed, now);
+    const item = newWriteoff(day, parsed, now);
     await ctx.writeoffs.add(item);
     send(res, 201, item, cookie);
     return true;

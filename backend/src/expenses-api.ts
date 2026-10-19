@@ -43,7 +43,7 @@ export async function handleExpenses(ctx: Ctx): Promise<boolean> {
   const { req, res, url } = ctx;
   if (!url.pathname.startsWith("/api/expenses")) return false;
   const method = req.method ?? "GET";
-  if (!ctx.session || ctx.session.role !== "worker") {
+  if (!ctx.session || (ctx.session.role !== "worker" && ctx.session.role !== "admin")) {
     send(res, ctx.session ? 403 : 401, { error: ctx.session ? "forbidden" : "unauthorized" });
     return true;
   }
@@ -57,14 +57,16 @@ export async function handleExpenses(ctx: Ctx): Promise<boolean> {
   }
 
   if (method === "POST" && url.pathname === "/api/expenses") {
-    const body = (await readJson(req)) as { category?: unknown; label?: unknown; title?: unknown; lines?: unknown } | null;
+    const body = (await readJson(req)) as { category?: unknown; label?: unknown; title?: unknown; lines?: unknown; day?: unknown } | null;
     const parsed = parseExpenseBody(body);
-    if (!parsed) {
+    const now = ctx.now();
+    const today = moscowDay(now);
+    const day = ctx.session.role === "admin" ? parseDay(body?.day, today) : today;
+    if (!parsed || !day) {
       send(res, 400, { error: "bad" }, cookie);
       return true;
     }
-    const now = ctx.now();
-    const expense = newExpense(moscowDay(now), parsed, now);
+    const expense = newExpense(day, parsed, now);
     await ctx.expenses.add(expense);
     send(res, 201, expense, cookie);
     return true;

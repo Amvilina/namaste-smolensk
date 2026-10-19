@@ -6,6 +6,7 @@ function workerPage(): Plugin {
     configureServer(server) {
       server.middlewares.use((req, _res, next) => {
         if (req.url === "/worker" || req.url === "/worker/") req.url = "/worker.html";
+        if (req.url === "/admin" || req.url === "/admin/") req.url = "/admin.html";
         next();
       });
     },
@@ -20,6 +21,7 @@ export default defineConfig({
       input: {
         main: "index.html",
         worker: "worker.html",
+        admin: "admin.html",
       },
     },
   },
@@ -31,7 +33,6 @@ export default defineConfig({
       "/api": "http://127.0.0.1:8080",
       "/login": "http://127.0.0.1:8080",
       "/logout": "http://127.0.0.1:8080",
-      "/admin": "http://127.0.0.1:8080",
     },
   },
 });

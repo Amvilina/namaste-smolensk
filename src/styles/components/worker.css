@@ -199,6 +199,23 @@
   grid-column: 1 / -1;
 }
 
+.back {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 2px solid oklch(0.28 0.03 75);
+  border-radius: 50%;
+  background: #fff;
+  color: oklch(0.28 0.03 75);
+}
+
+.back svg {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
 .add {
   padding: 0.28rem 0.6rem;
   border: 1px solid oklch(0.28 0.03 75);

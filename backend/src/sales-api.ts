@@ -40,8 +40,8 @@ async function readJson(req: IncomingMessage): Promise<unknown> {
   }
 }
 
-function workerCookie(ctx: Ctx): string | null {
-  if (!ctx.session || ctx.session.role !== "worker") return null;
+function staffCookie(ctx: Ctx): string | null {
+  if (!ctx.session || (ctx.session.role !== "worker" && ctx.session.role !== "admin")) return null;
   return ctx.renew(ctx.session);
 }
 
@@ -59,8 +59,8 @@ export async function handleApi(ctx: Ctx): Promise<boolean> {
     return true;
   }
 
-  const cookie = workerCookie(ctx);
-  if (!cookie) {
+  const cookie = staffCookie(ctx);
+  if (!cookie || !ctx.session) {
     send(res, ctx.session ? 403 : 401, { error: ctx.session ? "forbidden" : "unauthorized" });
     return true;
   }
@@ -78,15 +78,17 @@ export async function handleApi(ctx: Ctx): Promise<boolean> {
   }
 
   if (method === "POST" && url.pathname === "/api/sales") {
-    const body = (await readJson(req)) as { lines?: unknown; pay?: unknown } | null;
+    const body = (await readJson(req)) as { lines?: unknown; pay?: unknown; day?: unknown } | null;
     const lines = parseLines(body?.lines, ctx.catalog);
     const pay = parsePay(body?.pay, "cash");
-    if (!lines || !pay) {
+    const now = ctx.now();
+    const today = moscowDay(now);
+    const day = ctx.session.role === "admin" ? parseDay(body?.day, today) : today;
+    if (!lines || !pay || !day) {
       send(res, 400, { error: "bad" }, cookie);
       return true;
     }
-    const now = ctx.now();
-    const sale = newSale(moscowDay(now), lines, now, pay);
+    const sale = newSale(day, lines, now, pay);
     await ctx.sales.add(sale);
     send(res, 201, sale, cookie);
     return true;

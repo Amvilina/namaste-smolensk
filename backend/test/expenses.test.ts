@@ -117,8 +117,15 @@ test("воркер пишет затрату с категорией и комм
     assert.equal(left.some((item) => item.id === expense.id), false);
 
     const admin = await login(base, "admin", "admin-pass");
-    const forbidden = await fetch(base + "/api/expenses", { headers: { cookie: admin } });
-    assert.equal(forbidden.status, 403);
+    const visible = await fetch(base + "/api/expenses", { headers: { cookie: admin } });
+    assert.equal(visible.status, 200);
+    const older = await fetch(base + "/api/expenses", {
+      method: "POST",
+      headers: { cookie: admin, "content-type": "application/json" },
+      body: JSON.stringify({ day: "2026-10-18", category: "wage", title: "Смена", lines: [{ name: "Смена", amount: 1 }] }),
+    });
+    assert.equal(older.status, 201);
+    assert.equal(((await older.json()) as { day: string }).day, "2026-10-18");
   } finally {
     server.close();
   }

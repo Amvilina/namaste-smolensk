@@ -83,8 +83,15 @@ test("воркер списывает блюдо и продукт сразу", 
     assert.equal(removed.status, 200);
 
     const admin = await login(base, "admin", "admin-pass");
-    const forbidden = await fetch(base + "/api/writeoffs", { headers: { cookie: admin } });
-    assert.equal(forbidden.status, 403);
+    const visible = await fetch(base + "/api/writeoffs", { headers: { cookie: admin } });
+    assert.equal(visible.status, 200);
+    const older = await fetch(base + "/api/writeoffs", {
+      method: "POST",
+      headers: { cookie: admin, "content-type": "application/json" },
+      body: JSON.stringify({ day: "2026-10-18", kind: "dish", name: "Чай", volume: "1 шт" }),
+    });
+    assert.equal(older.status, 201);
+    assert.equal(((await older.json()) as { day: string }).day, "2026-10-18");
   } finally {
     server.close();
   }

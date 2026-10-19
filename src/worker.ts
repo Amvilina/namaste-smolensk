@@ -212,6 +212,7 @@ function addPosition(): void {
 function costGroups(): { day: string; items: Expense[] }[] {
   const map = new Map<string, Expense[]>();
   for (const item of state.costs) {
+    if (lockedDay && item.day !== lockedDay) continue;
     const list = map.get(item.day) ?? [];
     list.push(item);
     map.set(item.day, list);
@@ -322,6 +323,7 @@ function offOwn(): string {
 function offGroups(): { day: string; items: Writeoff[] }[] {
   const map = new Map<string, Writeoff[]>();
   for (const item of state.offs) {
+    if (lockedDay && item.day !== lockedDay) continue;
     const list = map.get(item.day) ?? [];
     list.push(item);
     map.set(item.day, list);
@@ -440,9 +442,12 @@ function offDesk(): string {
   `;
 }
 
+let lockedDay = "";
+
 function deskBar(): string {
   return `<header class="desk-bar">
       <div class="modes">
+        ${lockedDay ? `<a class="back" href="/admin?day=${lockedDay}" aria-label="Назад"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 6.5 9 12l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>` : ""}
         <button type="button" class="add${state.mode === "sales" ? " is-on" : ""}" data-mode="sales">Продажи</button>
         <button type="button" class="add${state.mode === "costs" ? " is-on" : ""}" data-mode="costs">Затраты</button>
         <button type="button" class="add${state.mode === "offs" ? " is-on" : ""}" data-mode="offs">Списания</button>
@@ -617,6 +622,7 @@ function paint(): void {
 function groups(): { day: string; sales: Sale[] }[] {
   const map = new Map<string, Sale[]>();
   for (const sale of state.sales) {
+    if (lockedDay && sale.day !== lockedDay) continue;
     const list = map.get(sale.day) ?? [];
     list.push(sale);
     map.set(sale.day, list);
@@ -697,7 +703,7 @@ async function save(): Promise<void> {
       : { name: line.name, price: line.price, qty: line.qty },
   );
   const path = state.editing ? `/api/sales/${state.editing}` : "/api/sales";
-  const body = state.editing ? { lines, day: state.day, pay: state.pay } : { lines, pay: state.pay };
+  const body = state.editing ? { lines, day: state.day, pay: state.pay } : { lines, pay: state.pay, day: state.day };
   const response = await fetch(path, {
     method: state.editing ? "PATCH" : "POST",
     headers: { "content-type": "application/json" },
@@ -762,6 +768,7 @@ async function saveCost(): Promise<void> {
       title: neat(state.costTitle),
       ...(state.costCategory === "other" ? { label: neat(state.costLabel) } : {}),
       lines: state.costDraft.map((line) => ({ name: line.name, amount: line.amount })),
+      ...(state.costEditing ? {} : { day: state.costDay }),
     }),
   });
   if (!response.ok) {
@@ -834,7 +841,12 @@ async function commitOff(rawName: string): Promise<void> {
   const response = await fetch(path, {
     method: state.offEditing ? "PATCH" : "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ kind: state.offKind, name, volume }),
+    body: JSON.stringify({
+      kind: state.offKind,
+      name,
+      volume,
+      ...(state.offEditing ? {} : { day: state.offDay }),
+    }),
   });
   if (!response.ok) {
     state.offName = name;
@@ -1184,8 +1196,17 @@ const me = await fetch("/api/me");
 if (!me.ok) location.replace("/login");
 else {
   const who = (await me.json()) as { role?: string };
-  if (who.role !== "worker") location.replace("/admin");
-  else {
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Moscow",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const asked = new URLSearchParams(location.search).get("day") ?? "";
+  const askedOk = /^\d{4}-\d{2}-\d{2}$/.test(asked) && asked <= today;
+  if (who.role === "admin" && askedOk) lockedDay = asked;
+  else if (who.role !== "worker") location.replace(who.role === "admin" ? "/admin" : "/login");
+  if (who.role === "worker" || lockedDay) {
     const [menu, sales, costs, offs] = await Promise.all([
       fetch("/api/menu").then((response) => response.json() as Promise<Dish[]>),
       fetch("/api/sales").then((response) => response.json() as Promise<Sale[]>),
@@ -1196,12 +1217,7 @@ else {
     state.sales = sales;
     state.costs = costs;
     state.offs = offs;
-    state.today = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Europe/Moscow",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(new Date());
+    state.today = lockedDay || today;
     state.day = state.today;
     state.costDay = state.today;
     state.offDay = state.today;

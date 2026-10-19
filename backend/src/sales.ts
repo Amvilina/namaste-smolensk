@@ -71,13 +71,24 @@ export function parseLines(input: unknown, catalog: CatalogDish[]): SaleLine[] |
     const dish = catalog.find((item) => item.id === row.dishId);
     if (!dish) return null;
     const picked = row.extras === undefined ? [] : row.extras;
-    if (!Array.isArray(picked) || picked.length > dish.extras.length) return null;
+    if (!Array.isArray(picked) || picked.length > 12) return null;
     const extras: SaleExtra[] = [];
-    for (const id of picked) {
-      if (typeof id !== "string" || extras.some((extra) => extra.id === id)) return null;
-      const extra = dish.extras.find((item) => item.id === id);
-      if (!extra) return null;
-      extras.push({ id: extra.id, name: extra.name, price: extra.price });
+    for (const item of picked) {
+      if (typeof item === "string") {
+        if (extras.some((extra) => extra.id === item)) return null;
+        const extra = dish.extras.find((option) => option.id === item);
+        if (!extra) return null;
+        extras.push({ id: extra.id, name: extra.name, price: extra.price });
+        continue;
+      }
+      if (!item || typeof item !== "object") return null;
+      const snap = item as { id?: unknown; name?: unknown; price?: unknown };
+      if (typeof snap.id !== "string" || snap.id.length < 1 || snap.id.length > 40) return null;
+      if (typeof snap.name !== "string") return null;
+      const name = snap.name.trim().replace(/\s+/g, " ");
+      if (!name || name.length > 80 || extras.some((extra) => extra.id === snap.id)) return null;
+      if (typeof snap.price !== "number" || !Number.isInteger(snap.price) || snap.price < 0 || snap.price > 100_000) return null;
+      extras.push({ id: snap.id, name, price: snap.price });
     }
     lines.push({ dishId: dish.id, name: dish.name, price: row.price, qty: row.qty, extras });
   }

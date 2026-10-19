@@ -1,0 +1,167 @@
+.cal {
+  width: min(100%, 24rem);
+  margin-inline: auto;
+}
+
+.cal-nav {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 2.5rem;
+  align-items: center;
+  margin-bottom: 0.7rem;
+}
+
+.cal-nav h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  text-align: center;
+}
+
+.cal-nav button {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: 2px solid oklch(0.28 0.03 75);
+  border-radius: 50%;
+  background: #fff;
+  color: oklch(0.28 0.03 75);
+}
+
+.cal-nav button:disabled {
+  opacity: 0.35;
+}
+
+.cal-nav svg {
+  display: block;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.cal-nav [data-next] svg {
+  transform: scaleX(-1);
+}
+
+.cal-week,
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.2rem;
+}
+
+.cal-week {
+  margin-bottom: 0.25rem;
+}
+
+.cal-week span {
+  text-align: center;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  color: var(--color-muted);
+}
+
+.cal-grid button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0.55rem;
+  background: transparent;
+  appearance: none;
+  font: inherit;
+  line-height: 1;
+}
+
+.cal-grid button.is-on {
+  background: #fed502;
+}
+
+.cal-grid button.has::after {
+  content: "";
+  position: absolute;
+  bottom: 0.28rem;
+  left: 50%;
+  width: 0.28rem;
+  height: 0.28rem;
+  margin-left: -0.14rem;
+  border-radius: 50%;
+  background: oklch(0.28 0.03 75);
+}
+
+.cal-grid button:disabled {
+  color: oklch(0.75 0.02 75);
+}
+
+.picked {
+  margin-top: 1.6rem;
+}
+
+.picked-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.picked-bar h2 {
+  margin: 0;
+}
+
+.picked-bar a {
+  padding: 0.45rem 0.85rem;
+  border: 2px solid oklch(0.28 0.03 75);
+  border-radius: 999px;
+  background: #fed502;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.day-cols {
+  display: grid;
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.day-cols section {
+  min-width: 0;
+  padding: 0.85rem 0.9rem 0.95rem;
+  border-radius: 0.75rem;
+  background: oklch(0.96 0.05 100);
+  box-shadow: inset 0 0 0 0.18rem #fff;
+}
+
+.day-cols section:nth-child(2) {
+  background: oklch(0.93 0.035 80);
+}
+
+.day-cols h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.day-cols ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.day-cols li + li {
+  margin-top: 0.35rem;
+}
+
+.day-cols li {
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 64rem) {
+  .day-cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

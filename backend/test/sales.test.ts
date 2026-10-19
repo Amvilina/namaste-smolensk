@@ -178,8 +178,22 @@ test("воркер записывает несколько товаров и п�
     assert.equal(left.some((item) => item.id === sale.id), false);
 
     const admin = await login(base, "admin", "admin-pass");
-    const forbidden = await fetch(base + "/api/sales", { headers: { cookie: admin } });
-    assert.equal(forbidden.status, 403);
+    const visible = await fetch(base + "/api/sales", { headers: { cookie: admin } });
+    assert.equal(visible.status, 200);
+    const older = await fetch(base + "/api/sales", {
+      method: "POST",
+      headers: { cookie: admin, "content-type": "application/json" },
+      body: JSON.stringify({ day: "2026-10-18", lines: [{ dishId: "tea", price: 50, qty: 1 }], pay: "cash" }),
+    });
+    assert.equal(older.status, 201);
+    assert.equal(((await older.json()) as { day: string }).day, "2026-10-18");
+    const workerDay = await fetch(base + "/api/sales", {
+      method: "POST",
+      headers: { cookie: worker, "content-type": "application/json" },
+      body: JSON.stringify({ day: "2026-10-01", lines: [{ dishId: "tea", price: 50, qty: 1 }], pay: "cash" }),
+    });
+    assert.equal(workerDay.status, 201);
+    assert.equal(((await workerDay.json()) as { day: string }).day, moscowDay(now));
 
     const menu = await fetch(base + "/api/menu", { headers: { cookie: worker } });
     assert.equal(menu.status, 200);
