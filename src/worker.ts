@@ -212,7 +212,7 @@ function addPosition(): void {
 function costGroups(): { day: string; items: Expense[] }[] {
   const map = new Map<string, Expense[]>();
   for (const item of state.costs) {
-    if (lockedDay && item.day !== lockedDay) continue;
+    if (item.day !== state.today) continue;
     const list = map.get(item.day) ?? [];
     list.push(item);
     map.set(item.day, list);
@@ -323,7 +323,7 @@ function offOwn(): string {
 function offGroups(): { day: string; items: Writeoff[] }[] {
   const map = new Map<string, Writeoff[]>();
   for (const item of state.offs) {
-    if (lockedDay && item.day !== lockedDay) continue;
+    if (item.day !== state.today) continue;
     const list = map.get(item.day) ?? [];
     list.push(item);
     map.set(item.day, list);
@@ -622,7 +622,7 @@ function paint(): void {
 function groups(): { day: string; sales: Sale[] }[] {
   const map = new Map<string, Sale[]>();
   for (const sale of state.sales) {
-    if (lockedDay && sale.day !== lockedDay) continue;
+    if (sale.day !== state.today) continue;
     const list = map.get(sale.day) ?? [];
     list.push(sale);
     map.set(sale.day, list);
