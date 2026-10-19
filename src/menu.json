@@ -1,137 +1,111 @@
 [
   {
-    "id": "shashlik",
-    "title": "Шашлык",
+    "id": "kystyby",
+    "title": "Кыстыбый и бургеры",
     "dishes": [
       {
-        "id": "shashlik-sheya",
-        "name": "Шашлык свиной (шея)",
-        "note": "Свиная шея, салат витаминный, соус фирменный, лук маринованный, лаваш",
-        "amount": "100 г",
-        "image": "/shashlik-sheya.webp",
-        "price": 190
-      },
-      {
-        "id": "shashlik-lopatka",
-        "name": "Шашлык свиной (лопатка)",
-        "note": "Лопатка свиная, салат витаминный, лук маринованный, соус фирменный",
-        "amount": "100 г",
-        "image": "/shashlik-lopatka.webp",
-        "price": 190
-      },
-      {
-        "id": "shashlik-chicken",
-        "name": "Шашлык курица",
-        "note": "Филе куриное, салат витаминный, огурец свежий, помидор свежий, лаваш, соус фирменный",
-        "amount": "100 г",
-        "image": "/shashlik-chicken.webp",
-        "price": 140
-      }
-    ]
-  },
-  {
-    "id": "drinks",
-    "title": "Напитки",
-    "dishes": [
-      {
-        "id": "coffee",
-        "name": "Кофе",
-        "note": "",
-        "amount": "0,3 л",
-        "image": "/coffee.webp",
-        "price": 50,
+        "id": "kystyby",
+        "name": "Кыстыбый",
+        "note": "Лаваш, картофельное пюре",
+        "amount": "260 г",
+        "image": "/kystyby.webp",
+        "price": 150,
         "extras": [
-          { "id": "milk", "name": "Молоко", "price": 10, "image": "/extras/milk.webp" },
-          { "id": "cream", "name": "Сливки", "price": 20, "image": "/extras/cream.webp" },
-          { "id": "mint", "name": "Мятный сироп", "price": 40, "image": "/extras/mint-syrup.webp" },
-          { "id": "lemon", "name": "Лимон", "price": 10, "image": "/extras/lemon.webp" },
-          { "id": "orange", "name": "Апельсин", "price": 10, "image": "/extras/orange.webp" }
+          {
+            "id": "pork",
+            "name": "Свинина",
+            "price": 50,
+            "image": "/extras/pork.webp"
+          },
+          {
+            "id": "beef",
+            "name": "Говядина",
+            "price": 40,
+            "image": "/extras/beef.webp"
+          },
+          {
+            "id": "chicken",
+            "name": "Курица",
+            "price": 40,
+            "image": "/extras/chicken.webp"
+          },
+          {
+            "id": "onion",
+            "name": "Лук карамелизированный",
+            "price": 30,
+            "image": "/extras/onion.webp"
+          },
+          {
+            "id": "mushrooms",
+            "name": "Грибы",
+            "price": 30,
+            "image": "/extras/mushrooms.webp"
+          },
+          {
+            "id": "greens",
+            "name": "Зелень",
+            "price": 30,
+            "image": "/extras/greens.webp"
+          },
+          {
+            "id": "cheese",
+            "name": "Сыр",
+            "price": 30,
+            "image": "/extras/cheese.webp"
+          },
+          {
+            "id": "cheddar",
+            "name": "Сыр чеддер",
+            "price": 30,
+            "image": "/extras/cheddar.webp"
+          },
+          {
+            "id": "cremette",
+            "name": "Сыр креметто",
+            "price": 30,
+            "image": "/extras/cremette.webp"
+          }
         ]
       },
       {
-        "id": "water",
-        "name": "Вода газ/негаз",
-        "note": "",
-        "amount": "0,5 л",
-        "image": "/water.webp",
-        "price": 70
+        "id": "pachat",
+        "name": "Татарский пачат",
+        "note": "Молочные оладьи, говяжья котлета, свежие овощи, пекинская капуста, фирменный соус",
+        "amount": "330 г",
+        "image": "/pachat.webp",
+        "price": 290
       },
       {
-        "id": "energy",
-        "name": "Энергетик",
-        "note": "",
-        "amount": "0,5 л",
-        "image": "/energy.webp"
+        "id": "taras",
+        "name": "Тарас бургер",
+        "note": "Курица, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
+        "amount": "250 г",
+        "image": "/taras.webp",
+        "price": 230
       },
       {
-        "id": "cola",
-        "name": "Кока-кола",
-        "note": "",
-        "amount": "0,5 л",
-        "image": "/cola.webp",
-        "price": 120
+        "id": "taras-pork",
+        "name": "Тарас бургер свиной",
+        "note": "Свинина, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
+        "amount": "260 г",
+        "image": "/taras-pork.webp",
+        "price": 260
       },
       {
-        "id": "lemonade",
-        "name": "Лимонад",
-        "note": "",
-        "amount": "0,5 л",
-        "image": "/lemonade.webp",
-        "price": 80
+        "id": "taras-hot",
+        "name": "Острый тарас бургер",
+        "note": "Курица или свинина, свежие овощи, пармезан, халапеньо, соус кимчи, хлеб тарас",
+        "amount": "260 г",
+        "image": "/taras-hot.webp",
+        "price": 270
       },
       {
-        "id": "tea",
-        "name": "Чай",
-        "note": "",
-        "amount": "0,3 л",
-        "image": "/tea.webp",
-        "price": 50
-      }
-    ]
-  },
-  {
-    "id": "mors",
-    "title": "Авторские напитки",
-    "dishes": [
-      {
-        "id": "mors-strawberry",
-        "name": "Клубничный морс",
-        "note": "Мёд, вода, клубника",
-        "amount": "0,4 л",
-        "image": "/mors-strawberry.webp",
-        "price": 150
-      },
-      {
-        "id": "mors-lingon",
-        "name": "Брусничный морс",
-        "note": "Мёд, вода, брусника",
-        "amount": "0,4 л",
-        "image": "/mors-lingon.webp",
-        "price": 150
-      },
-      {
-        "id": "mors-raspberry",
-        "name": "Малиновый морс",
-        "note": "Мёд, вода, малина",
-        "amount": "0,4 л",
-        "image": "/mors-raspberry.webp",
-        "price": 150
-      },
-      {
-        "id": "mors-sea",
-        "name": "Облепиховый морс",
-        "note": "Мёд, вода, облепиха, апельсин",
-        "amount": "0,4 л",
-        "image": "/mors-sea.webp",
-        "price": 150
-      },
-      {
-        "id": "mojito",
-        "name": "Мохито",
-        "note": "Вода газированная, лимон, мята",
-        "amount": "0,4 л",
-        "image": "/mojito.webp",
-        "price": 150
+        "id": "taras-beef",
+        "name": "Тарас бургер с говядиной",
+        "note": "Говядина, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
+        "amount": "260 г",
+        "image": "/taras-beef.webp",
+        "price": 250
       }
     ]
   },
@@ -194,6 +168,36 @@
         "amount": "400 г",
         "image": "/shawarma-village.webp",
         "price": 360
+      }
+    ]
+  },
+  {
+    "id": "shashlik",
+    "title": "Шашлык",
+    "dishes": [
+      {
+        "id": "shashlik-sheya",
+        "name": "Шашлык свиной (шея)",
+        "note": "Свиная шея, салат витаминный, соус фирменный, лук маринованный, лаваш",
+        "amount": "100 г",
+        "image": "/shashlik-sheya.webp",
+        "price": 190
+      },
+      {
+        "id": "shashlik-lopatka",
+        "name": "Шашлык свиной (лопатка)",
+        "note": "Лопатка свиная, салат витаминный, лук маринованный, соус фирменный",
+        "amount": "100 г",
+        "image": "/shashlik-lopatka.webp",
+        "price": 190
+      },
+      {
+        "id": "shashlik-chicken",
+        "name": "Шашлык курица",
+        "note": "Филе куриное, салат витаминный, огурец свежий, помидор свежий, лаваш, соус фирменный",
+        "amount": "100 г",
+        "image": "/shashlik-chicken.webp",
+        "price": 140
       }
     ]
   },
@@ -268,67 +272,133 @@
     ]
   },
   {
-    "id": "kystyby",
-    "title": "Кыстыбый и бургеры",
+    "id": "mors",
+    "title": "Авторские напитки",
     "dishes": [
       {
-        "id": "kystyby",
-        "name": "Кыстыбый",
-        "note": "Лаваш, картофельное пюре",
-        "amount": "260 г",
-        "image": "/kystyby.webp",
-        "price": 150,
+        "id": "mors-strawberry",
+        "name": "Клубничный морс",
+        "note": "Мёд, вода, клубника",
+        "amount": "0,4 л",
+        "image": "/mors-strawberry.webp",
+        "price": 150
+      },
+      {
+        "id": "mors-lingon",
+        "name": "Брусничный морс",
+        "note": "Мёд, вода, брусника",
+        "amount": "0,4 л",
+        "image": "/mors-lingon.webp",
+        "price": 150
+      },
+      {
+        "id": "mors-raspberry",
+        "name": "Малиновый морс",
+        "note": "Мёд, вода, малина",
+        "amount": "0,4 л",
+        "image": "/mors-raspberry.webp",
+        "price": 150
+      },
+      {
+        "id": "mors-sea",
+        "name": "Облепиховый морс",
+        "note": "Мёд, вода, облепиха, апельсин",
+        "amount": "0,4 л",
+        "image": "/mors-sea.webp",
+        "price": 150
+      },
+      {
+        "id": "mojito",
+        "name": "Мохито",
+        "note": "Вода газированная, лимон, мята",
+        "amount": "0,4 л",
+        "image": "/mojito.webp",
+        "price": 150
+      }
+    ]
+  },
+  {
+    "id": "drinks",
+    "title": "Напитки",
+    "dishes": [
+      {
+        "id": "coffee",
+        "name": "Кофе",
+        "note": "",
+        "amount": "0,3 л",
+        "image": "/coffee.webp",
+        "price": 50,
         "extras": [
-          { "id": "pork", "name": "Свинина", "price": 50, "image": "/extras/pork.webp" },
-          { "id": "beef", "name": "Говядина", "price": 40, "image": "/extras/beef.webp" },
-          { "id": "chicken", "name": "Курица", "price": 40, "image": "/extras/chicken.webp" },
-          { "id": "onion", "name": "Лук карамелизированный", "price": 30, "image": "/extras/onion.webp" },
-          { "id": "mushrooms", "name": "Грибы", "price": 30, "image": "/extras/mushrooms.webp" },
-          { "id": "greens", "name": "Зелень", "price": 30, "image": "/extras/greens.webp" },
-          { "id": "cheese", "name": "Сыр", "price": 30, "image": "/extras/cheese.webp" },
-          { "id": "cheddar", "name": "Сыр чеддер", "price": 30, "image": "/extras/cheddar.webp" },
-          { "id": "cremette", "name": "Сыр креметто", "price": 30, "image": "/extras/cremette.webp" }
+          {
+            "id": "milk",
+            "name": "Молоко",
+            "price": 10,
+            "image": "/extras/milk.webp"
+          },
+          {
+            "id": "cream",
+            "name": "Сливки",
+            "price": 20,
+            "image": "/extras/cream.webp"
+          },
+          {
+            "id": "mint",
+            "name": "Мятный сироп",
+            "price": 40,
+            "image": "/extras/mint-syrup.webp"
+          },
+          {
+            "id": "lemon",
+            "name": "Лимон",
+            "price": 10,
+            "image": "/extras/lemon.webp"
+          },
+          {
+            "id": "orange",
+            "name": "Апельсин",
+            "price": 10,
+            "image": "/extras/orange.webp"
+          }
         ]
       },
       {
-        "id": "pachat",
-        "name": "Татарский пачат",
-        "note": "Молочные оладьи, говяжья котлета, свежие овощи, пекинская капуста, фирменный соус",
-        "amount": "330 г",
-        "image": "/pachat.webp",
-        "price": 290
+        "id": "water",
+        "name": "Вода газ/негаз",
+        "note": "",
+        "amount": "0,5 л",
+        "image": "/water.webp",
+        "price": 70
       },
       {
-        "id": "taras",
-        "name": "Тарас бургер",
-        "note": "Курица, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
-        "amount": "250 г",
-        "image": "/taras.webp",
-        "price": 230
+        "id": "energy",
+        "name": "Энергетик",
+        "note": "",
+        "amount": "0,5 л",
+        "image": "/energy.webp"
       },
       {
-        "id": "taras-pork",
-        "name": "Тарас бургер свиной",
-        "note": "Свинина, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
-        "amount": "260 г",
-        "image": "/taras-pork.webp",
-        "price": 260
+        "id": "cola",
+        "name": "Кока-кола",
+        "note": "",
+        "amount": "0,5 л",
+        "image": "/cola.webp",
+        "price": 120
       },
       {
-        "id": "taras-hot",
-        "name": "Острый тарас бургер",
-        "note": "Курица или свинина, свежие овощи, пармезан, халапеньо, соус кимчи, хлеб тарас",
-        "amount": "260 г",
-        "image": "/taras-hot.webp",
-        "price": 270
+        "id": "lemonade",
+        "name": "Лимонад",
+        "note": "",
+        "amount": "0,5 л",
+        "image": "/lemonade.webp",
+        "price": 80
       },
       {
-        "id": "taras-beef",
-        "name": "Тарас бургер с говядиной",
-        "note": "Говядина, свежие овощи, пекинская капуста, пармезан, фирменный соус, хлеб тарас",
-        "amount": "260 г",
-        "image": "/taras-beef.webp",
-        "price": 250
+        "id": "tea",
+        "name": "Чай",
+        "note": "",
+        "amount": "0,3 л",
+        "image": "/tea.webp",
+        "price": 50
       }
     ]
   }
