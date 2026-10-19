@@ -16,4 +16,4 @@ echo "2/3 git pull в $APP"
 echo "3/3 docker compose up --build"
 "${SSH[@]}" "cd '$APP' && docker compose up -d --build"
 
-echo "готово: http://212.119.42.209"
+echo "готово: https://namaste-smolensk.ru"

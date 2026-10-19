@@ -50,8 +50,8 @@ function clientIp(req: IncomingMessage): string {
   return req.socket.remoteAddress ?? "";
 }
 
-function sessionCookie(value: string, maxAge: number): string {
-  return `${COOKIE}=${value}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}`;
+function sessionCookie(value: string, maxAge: number, secure = false): string {
+  return `${COOKIE}=${value}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}${secure ? "; Secure" : ""}`;
 }
 
 async function readForm(req: IncomingMessage): Promise<URLSearchParams> {
@@ -108,12 +108,12 @@ export function createApp(options: AppOptions) {
     return { user, session };
   }
 
-  function renewedCookie(session: Session): string {
+  function renewedCookie(session: Session, secure = false): string {
     const at = now();
     const exp = Math.min(at + WEEK_MS, session.iat + ABSOLUTE_MS);
     const token = signSession({ login: session.login, role: session.role, iat: session.iat, exp }, secret);
     const maxAge = Math.max(1, Math.floor((exp - at) / 1000));
-    return sessionCookie(encodeURIComponent(token), maxAge);
+    return sessionCookie(encodeURIComponent(token), maxAge, secure);
   }
 
   function blocked(ip: string): boolean {
@@ -135,6 +135,9 @@ export function createApp(options: AppOptions) {
     const url = new URL(req.url ?? "/", "http://namaste.local");
     const method = req.method ?? "GET";
     const opened = openSession(req);
+    const secure = req.headers["x-forwarded-proto"] === "https";
+    const renew = (session: Session) => renewedCookie(session, secure);
+    const cookie = (value: string, maxAge: number) => sessionCookie(value, maxAge, secure);
 
     if (
       await handleWriteoffs({
@@ -144,7 +147,7 @@ export function createApp(options: AppOptions) {
         session: opened?.session ?? null,
         writeoffs,
         now,
-        renew: renewedCookie,
+        renew,
       })
     ) {
       return;
@@ -158,7 +161,7 @@ export function createApp(options: AppOptions) {
         session: opened?.session ?? null,
         expenses,
         now,
-        renew: renewedCookie,
+        renew,
       })
     ) {
       return;
@@ -173,7 +176,7 @@ export function createApp(options: AppOptions) {
         sales,
         catalog,
         now,
-        renew: renewedCookie,
+        renew,
       })
     ) {
       return;
@@ -181,7 +184,7 @@ export function createApp(options: AppOptions) {
 
     if (method === "GET" && url.pathname === "/login") {
       if (opened) {
-        redirect(res, home(opened.user.role), renewedCookie(opened.session));
+        redirect(res, home(opened.user.role), renew(opened.session));
         return;
       }
       sendHtml(res, 200, loginPage(url.searchParams.get("e") === "1"));
@@ -190,7 +193,7 @@ export function createApp(options: AppOptions) {
 
     if (method === "POST" && url.pathname === "/login") {
       if (opened) {
-        redirect(res, home(opened.user.role), renewedCookie(opened.session));
+        redirect(res, home(opened.user.role), renew(opened.session));
         return;
       }
       const ip = clientIp(req);
@@ -214,28 +217,28 @@ export function createApp(options: AppOptions) {
         { login: found.login, role: found.role, iat: at, exp: at + WEEK_MS },
         secret,
       );
-      redirect(res, home(found.role), sessionCookie(encodeURIComponent(token), MAX_AGE_SEC));
+      redirect(res, home(found.role), cookie(encodeURIComponent(token), MAX_AGE_SEC));
       return;
     }
 
     if (method === "POST" && url.pathname === "/logout") {
-      redirect(res, "/login", sessionCookie("", 0));
+      redirect(res, "/login", cookie("", 0));
       return;
     }
 
     if (method === "GET" && (url.pathname === "/admin" || url.pathname === "/worker")) {
       if (!opened) {
         const stale = cookiesOf(req).get(COOKIE);
-        redirect(res, "/login", stale ? sessionCookie("", 0) : undefined);
+        redirect(res, "/login", stale ? cookie("", 0) : undefined);
         return;
       }
       const page = url.pathname === "/admin" ? "admin" : "worker";
-      const cookie = renewedCookie(opened.session);
+      const fresh = renew(opened.session);
       if (opened.user.role !== page) {
-        redirect(res, home(opened.user.role), cookie);
+        redirect(res, home(opened.user.role), fresh);
         return;
       }
-      sendHtml(res, 200, emptyPage(page === "admin" ? "Админка" : "Сотрудник"), cookie);
+      sendHtml(res, 200, emptyPage(page === "admin" ? "Админка" : "Сотрудник"), fresh);
       return;
     }
 
