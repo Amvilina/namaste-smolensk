@@ -1,9 +1,13 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Role } from "./users.ts";
 
+export const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+export const ABSOLUTE_MS = 90 * 24 * 60 * 60 * 1000;
+
 export type Session = {
   login: string;
   role: Role;
+  iat: number;
   exp: number;
 };
 
@@ -26,8 +30,10 @@ export function readSession(token: string, secret: string, now: number): Session
     const parsed = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as Partial<Session>;
     if (typeof parsed.login !== "string" || parsed.login.length === 0) return null;
     if (parsed.role !== "admin" && parsed.role !== "worker") return null;
+    if (typeof parsed.iat !== "number" || parsed.iat > now) return null;
+    if (now >= parsed.iat + ABSOLUTE_MS) return null;
     if (typeof parsed.exp !== "number" || parsed.exp <= now) return null;
-    return { login: parsed.login, role: parsed.role, exp: parsed.exp };
+    return { login: parsed.login, role: parsed.role, iat: parsed.iat, exp: parsed.exp };
   } catch {
     return null;
   }

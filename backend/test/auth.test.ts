@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { once } from "node:events";
 import test from "node:test";
 import { createApp } from "../src/app.ts";
+import { ABSOLUTE_MS, signSession, WEEK_MS } from "../src/session.ts";
 import { ARGON_OPTIONS, hashPassword, verifyPassword } from "../src/passwords.ts";
 import { DUMMY_PASSWORD_HASH, users, type StoredUser } from "../src/users.ts";
 
@@ -131,6 +132,49 @@ test("вход пускает на свою пустую страницу и н�
     const after = await ask(base, "/admin", { cookie: cookiePair(out.cookies[0] ?? "") });
     assert.equal(after.status, 302);
     assert.equal(after.location, "/login");
+  } finally {
+    server.close();
+  }
+});
+
+function sessionPayload(setCookie: string): { iat: number; exp: number } {
+  const token = decodeURIComponent(cookiePair(setCookie).split("=")[1] ?? "");
+  const body = token.split(".")[0] ?? "";
+  return JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as { iat: number; exp: number };
+}
+
+test("неделя продлевается при заходе, через 90 дней пароль снова", async () => {
+  const fixture: StoredUser[] = [
+    { login: "admin", role: "admin", passwordHash: await hashPassword(adminPassword) },
+  ];
+  let clock = 1_700_000_000_000;
+  const { server, base } = await listen(createApp({ users: fixture, secret, now: () => clock }));
+  try {
+    const admin = await ask(base, "/login", {
+      method: "POST",
+      body: new URLSearchParams({ login: "admin", password: adminPassword }).toString(),
+    });
+    assert.match(admin.cookies[0] ?? "", /Max-Age=604800/);
+    const first = sessionPayload(admin.cookies[0] ?? "");
+    assert.equal(first.exp - first.iat, WEEK_MS);
+
+    clock = first.iat + 2 * 24 * 60 * 60 * 1000;
+    const visit = await ask(base, "/admin", { cookie: cookiePair(admin.cookies[0] ?? "") });
+    const slid = sessionPayload(visit.cookies[0] ?? "");
+    assert.equal(slid.iat, first.iat);
+    assert.equal(slid.exp, clock + WEEK_MS);
+
+    const agedIat = clock - (ABSOLUTE_MS - 24 * 60 * 60 * 1000);
+    const aged = signSession({ login: "admin", role: "admin", iat: agedIat, exp: clock + WEEK_MS }, secret);
+    const late = await ask(base, "/admin", { cookie: `namaste_session=${encodeURIComponent(aged)}` });
+    const capped = sessionPayload(late.cookies[0] ?? "");
+    assert.equal(capped.iat, agedIat);
+    assert.equal(capped.exp, agedIat + ABSOLUTE_MS);
+
+    clock = agedIat + ABSOLUTE_MS;
+    const forced = await ask(base, "/admin", { cookie: cookiePair(late.cookies[0] ?? "") });
+    assert.equal(forced.status, 302);
+    assert.equal(forced.location, "/login");
   } finally {
     server.close();
   }

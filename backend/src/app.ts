@@ -1,11 +1,11 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { loginPage, emptyPage } from "./pages.ts";
 import { verifyPassword } from "./passwords.ts";
-import { readSession, signSession } from "./session.ts";
+import { ABSOLUTE_MS, readSession, signSession, WEEK_MS, type Session } from "./session.ts";
 import { DUMMY_PASSWORD_HASH, users as defaultUsers, type Role, type StoredUser } from "./users.ts";
 
 const COOKIE = "namaste_session";
-const MAX_AGE_SEC = 60 * 60 * 12;
+const MAX_AGE_SEC = WEEK_MS / 1000;
 const FAIL_LIMIT = 8;
 const FAIL_WINDOW_MS = 10 * 60 * 1000;
 
@@ -82,12 +82,22 @@ export function createApp(options: AppOptions) {
   const now = options.now ?? Date.now;
   const failures = new Map<string, Failure>();
 
-  function currentUser(req: IncomingMessage): StoredUser | null {
+  function openSession(req: IncomingMessage): { user: StoredUser; session: Session } | null {
     const token = cookiesOf(req).get(COOKIE);
     if (!token) return null;
     const session = readSession(token, secret, now());
     if (!session) return null;
-    return users.find((user) => user.login === session.login && user.role === session.role) ?? null;
+    const user = users.find((item) => item.login === session.login && item.role === session.role);
+    if (!user) return null;
+    return { user, session };
+  }
+
+  function renewedCookie(session: Session): string {
+    const at = now();
+    const exp = Math.min(at + WEEK_MS, session.iat + ABSOLUTE_MS);
+    const token = signSession({ login: session.login, role: session.role, iat: session.iat, exp }, secret);
+    const maxAge = Math.max(1, Math.floor((exp - at) / 1000));
+    return sessionCookie(encodeURIComponent(token), maxAge);
   }
 
   function blocked(ip: string): boolean {
@@ -108,11 +118,11 @@ export function createApp(options: AppOptions) {
   return async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url ?? "/", "http://namaste.local");
     const method = req.method ?? "GET";
-    const user = currentUser(req);
+    const opened = openSession(req);
 
     if (method === "GET" && url.pathname === "/login") {
-      if (user) {
-        redirect(res, home(user.role));
+      if (opened) {
+        redirect(res, home(opened.user.role), renewedCookie(opened.session));
         return;
       }
       sendHtml(res, 200, loginPage(url.searchParams.get("e") === "1"));
@@ -120,8 +130,8 @@ export function createApp(options: AppOptions) {
     }
 
     if (method === "POST" && url.pathname === "/login") {
-      if (user) {
-        redirect(res, home(user.role));
+      if (opened) {
+        redirect(res, home(opened.user.role), renewedCookie(opened.session));
         return;
       }
       const ip = clientIp(req);
@@ -140,7 +150,11 @@ export function createApp(options: AppOptions) {
         return;
       }
       failures.delete(ip);
-      const token = signSession({ login: found.login, role: found.role, exp: now() + MAX_AGE_SEC * 1000 }, secret);
+      const at = now();
+      const token = signSession(
+        { login: found.login, role: found.role, iat: at, exp: at + WEEK_MS },
+        secret,
+      );
       redirect(res, home(found.role), sessionCookie(encodeURIComponent(token), MAX_AGE_SEC));
       return;
     }
@@ -151,16 +165,18 @@ export function createApp(options: AppOptions) {
     }
 
     if (method === "GET" && (url.pathname === "/admin" || url.pathname === "/worker")) {
-      if (!user) {
-        redirect(res, "/login");
+      if (!opened) {
+        const stale = cookiesOf(req).get(COOKIE);
+        redirect(res, "/login", stale ? sessionCookie("", 0) : undefined);
         return;
       }
       const page = url.pathname === "/admin" ? "admin" : "worker";
-      if (user.role !== page) {
-        redirect(res, home(user.role));
+      const cookie = renewedCookie(opened.session);
+      if (opened.user.role !== page) {
+        redirect(res, home(opened.user.role), cookie);
         return;
       }
-      sendHtml(res, 200, emptyPage(page === "admin" ? "Админка" : "Сотрудник"));
+      sendHtml(res, 200, emptyPage(page === "admin" ? "Админка" : "Сотрудник"), cookie);
       return;
     }
 
