@@ -46,6 +46,16 @@ type Expense = {
   lines: { name: string; amount: number }[];
 };
 
+type OffKind = "dish" | "product";
+
+type Writeoff = {
+  id: string;
+  day: string;
+  kind: OffKind;
+  name: string;
+  volume: string;
+};
+
 const CATS: { id: Category; name: string }[] = [
   { id: "products", name: "Продукты" },
   { id: "tech", name: "Техническое" },
@@ -78,7 +88,7 @@ const state: {
   query: string;
   priceFocus: string | null;
   error: string;
-  mode: "sales" | "costs";
+  mode: "sales" | "costs" | "offs";
   costs: Expense[];
   costCategory: Category;
   costLabel: string;
@@ -90,6 +100,15 @@ const state: {
   costDay: string;
   costError: string;
   costFocus: string | null;
+  offs: Writeoff[];
+  offKind: OffKind;
+  offQuery: string;
+  offName: string;
+  offVolume: string;
+  offEditing: string | null;
+  offDay: string;
+  offError: string;
+  offFocus: "query" | "name" | "volume" | null;
 } = {
   today: "",
   day: "",
@@ -113,6 +132,15 @@ const state: {
   costDay: "",
   costError: "",
   costFocus: null,
+  offs: [],
+  offKind: "dish",
+  offQuery: "",
+  offName: "",
+  offVolume: "",
+  offEditing: null,
+  offDay: "",
+  offError: "",
+  offFocus: null,
 };
 
 function esc(value: string): string {
@@ -278,17 +306,164 @@ function costDesk(): string {
   `;
 }
 
+function offMatches(): Dish[] {
+  const query = state.offQuery.trim().toLocaleLowerCase("ru");
+  if (!query) return [];
+  return state.catalog.filter((dish) => dish.name.toLocaleLowerCase("ru").includes(query)).slice(0, 8);
+}
+
+function offOwn(): string {
+  const query = neat(state.offQuery);
+  if (!query || query.length > 80) return "";
+  const exact = state.catalog.some((dish) => dish.name.toLocaleLowerCase("ru") === query.toLocaleLowerCase("ru"));
+  return exact ? "" : query;
+}
+
+function offGroups(): { day: string; items: Writeoff[] }[] {
+  const map = new Map<string, Writeoff[]>();
+  for (const item of state.offs) {
+    const list = map.get(item.day) ?? [];
+    list.push(item);
+    map.set(item.day, list);
+  }
+  return [...map.entries()].map(([day, items]) => ({ day, items }));
+}
+
+function typedOffName(): string {
+  if (neat(state.offName)) return state.offName;
+  if (state.offKind !== "dish" || state.offEditing) return "";
+  const exact = state.catalog.find((dish) => dish.name.toLocaleLowerCase("ru") === state.offQuery.trim().toLocaleLowerCase("ru"));
+  return exact?.name ?? state.offQuery;
+}
+
+function chooseOff(name: string): void {
+  const text = neat(name);
+  if (!text || text.length > 80) return;
+  state.offName = text;
+  state.offError = "";
+  state.offFocus = "volume";
+  paint();
+}
+
+function offFields(): string {
+  const plus = state.offEditing
+    ? ""
+    : `<span class="step"><button type="button" data-add-off aria-label="Добавить">+</button></span>`;
+  return `<div class="adder">
+      ${
+        state.offKind === "product" || state.offEditing
+          ? `<input data-off-name value="${esc(state.offName)}" placeholder="Название" maxlength="80" autocomplete="off" />`
+          : ""
+      }
+      <input data-off-volume value="${esc(state.offVolume)}" placeholder="Объём" maxlength="80" autocomplete="off" />
+      ${plus}
+    </div>
+    ${
+      state.offEditing
+        ? `<div class="slip">
+            <div>
+              <button class="record" type="button" data-save-off>Сохранить</button>
+              <button class="ghost" type="button" data-drop-off>Удалить</button>
+              <button class="ghost" type="button" data-cancel-off>Отмена</button>
+            </div>
+            ${state.offError ? `<p class="miss">${esc(state.offError)}</p>` : ""}
+          </div>`
+        : state.offError
+          ? `<p class="miss">${esc(state.offError)}</p>`
+          : ""
+    }`;
+}
+
+function offDesk(): string {
+  const hits = offMatches();
+  const own = offOwn();
+  const picked = neat(state.offName).toLocaleLowerCase("ru");
+  const searching = state.offKind === "dish" && !state.offEditing;
+  return `
+    <section>
+      <p class="day-line">
+        <time datetime="${esc(state.offDay)}">${esc(dayLabel(state.offDay))}</time>
+      </p>
+      <div class="cats">
+        <button type="button" class="add${state.offKind === "dish" ? " is-on" : ""}" data-off-kind="dish">Блюда</button>
+        <button type="button" class="add${state.offKind === "product" ? " is-on" : ""}" data-off-kind="product">Продукты</button>
+      </div>
+      ${
+        searching
+          ? `            <label class="find">
+              <input data-off-query value="${esc(state.offQuery)}" placeholder="Блюдо" autocomplete="off" spellcheck="false" enterkeyhint="search" />
+            </label>
+            ${offFields()}
+            <ul class="hits">
+              ${hits
+                .map(
+                  (dish) => `<li><button type="button" class="${dish.name.toLocaleLowerCase("ru") === picked ? "is-on" : ""}" data-off-pick="${esc(dish.id)}">
+                    <img src="${esc(dish.image)}" alt="" width="128" height="128" />
+                    <span><span class="hit-name">${esc(dish.name)}</span><br /><span class="hit-amount">${esc(dish.amount)}</span></span>
+                  </button></li>`,
+                )
+                .join("")}
+              ${
+                own
+                  ? `<li><button type="button" class="${own.toLocaleLowerCase("ru") === picked ? "is-on" : ""}" data-off-own="${esc(own)}">
+                    <img src="${OWN_IMAGE}" alt="" width="128" height="128" />
+                    <span><span class="hit-name">${esc(own)}</span></span>
+                  </button></li>`
+                  : ""
+              }
+            </ul>`
+          : offFields()
+      }
+    </section>
+    <section class="history">
+      <ul class="past">
+        ${offGroups()
+          .map(
+            (group) => `<li>
+              <h2>${esc(dayLabel(group.day))}</h2>
+              ${group.items
+                .map(
+                  (item) => `<article class="bill">
+                    <div class="bill-top"><span class="tag">${item.kind === "dish" ? "Блюда" : "Продукты"}</span></div>
+                    <ul class="bill-lines">
+                      <li><span>${esc(item.name)}</span><b class="vol">${esc(item.volume)}</b></li>
+                    </ul>
+                    <button type="button" data-edit-off="${esc(item.id)}">Править</button>
+                  </article>`,
+                )
+                .join("")}
+            </li>`,
+          )
+          .join("")}
+      </ul>
+    </section>
+  `;
+}
+
 function deskBar(): string {
   return `<header class="desk-bar">
       <div class="modes">
         <button type="button" class="add${state.mode === "sales" ? " is-on" : ""}" data-mode="sales">Продажи</button>
         <button type="button" class="add${state.mode === "costs" ? " is-on" : ""}" data-mode="costs">Затраты</button>
+        <button type="button" class="add${state.mode === "offs" ? " is-on" : ""}" data-mode="offs">Списания</button>
       </div>
       <form method="post" action="/logout"><button class="leave" type="submit">Выйти</button></form>
     </header>`;
 }
 
 function focusDesk(caret: number | null): void {
+  if (state.offFocus === "query") {
+    root.querySelector<HTMLInputElement>("[data-off-query]")?.focus();
+    return;
+  }
+  if (state.offFocus === "name") {
+    root.querySelector<HTMLInputElement>("[data-off-name]")?.focus();
+    return;
+  }
+  if (state.offFocus === "volume") {
+    root.querySelector<HTMLInputElement>("[data-off-volume]")?.focus();
+    return;
+  }
   if (state.costFocus === "label") {
     root.querySelector<HTMLInputElement>("[data-cost-label]")?.focus();
     return;
@@ -321,6 +496,12 @@ function paint(): void {
   const total = state.draft.reduce((sum, line) => sum + lineSum(line), 0);
   const hits = matches();
   const own = ownQuery();
+
+  if (state.mode === "offs") {
+    root.innerHTML = `${deskBar()}<main class="desk"><div class="desk-grid">${offDesk()}</div></main>`;
+    focusDesk(caret);
+    return;
+  }
 
   if (state.mode === "costs") {
     root.innerHTML = `${deskBar()}<main class="desk"><div class="desk-grid">${costDesk()}</div></main>`;
@@ -627,6 +808,76 @@ function editCost(id: string): void {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+function blankOff(): void {
+  state.offEditing = null;
+  state.offKind = "dish";
+  state.offQuery = "";
+  state.offName = "";
+  state.offVolume = "";
+  state.offDay = state.today;
+  state.offError = "";
+  state.offFocus = null;
+}
+
+async function commitOff(rawName: string): Promise<void> {
+  const name = neat(rawName);
+  const volume = neat(state.offVolume);
+  if (!name || name.length > 80) return;
+  if (!volume || volume.length > 80) {
+    state.offName = name;
+    state.offFocus = "volume";
+    state.offError = "";
+    paint();
+    return;
+  }
+  const path = state.offEditing ? `/api/writeoffs/${state.offEditing}` : "/api/writeoffs";
+  const response = await fetch(path, {
+    method: state.offEditing ? "PATCH" : "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ kind: state.offKind, name, volume }),
+  });
+  if (!response.ok) {
+    state.offName = name;
+    state.offError = "Не записалось";
+    paint();
+    return;
+  }
+  const kind = state.offKind;
+  blankOff();
+  state.offKind = kind;
+  state.offFocus = kind === "product" ? "name" : "query";
+  state.offs = (await (await fetch("/api/writeoffs")).json()) as Writeoff[];
+  paint();
+}
+
+async function dropOff(): Promise<void> {
+  if (!state.offEditing) return;
+  const response = await fetch(`/api/writeoffs/${state.offEditing}`, { method: "DELETE" });
+  if (!response.ok) {
+    state.offError = "Не записалось";
+    paint();
+    return;
+  }
+  blankOff();
+  state.offs = (await (await fetch("/api/writeoffs")).json()) as Writeoff[];
+  paint();
+}
+
+function editOff(id: string): void {
+  const item = state.offs.find((row) => row.id === id);
+  if (!item) return;
+  state.offEditing = item.id;
+  state.offDay = item.day;
+  state.offKind = item.kind;
+  state.offQuery = "";
+  state.offName = item.name;
+  state.offVolume = item.volume;
+  state.offError = "";
+  state.offFocus = "volume";
+  paint();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 function editSale(id: string): void {
   const sale = state.sales.find((item) => item.id === id);
   if (!sale) return;
@@ -671,6 +922,21 @@ root.addEventListener("input", (event) => {
     state.costItem = target.value;
     return;
   }
+  if (target.dataset.offQuery !== undefined) {
+    state.offQuery = target.value;
+    state.offName = "";
+    state.offFocus = null;
+    paint();
+    return;
+  }
+  if (target.dataset.offName !== undefined) {
+    state.offName = target.value;
+    return;
+  }
+  if (target.dataset.offVolume !== undefined) {
+    state.offVolume = target.value;
+    return;
+  }
   if (target.dataset.costPrice !== undefined) {
     const digits = target.value.replace(/\D/g, "");
     state.costPrice = digits === "" ? null : Number(digits);
@@ -706,11 +972,52 @@ root.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) return;
   const mode = target.closest<HTMLElement>("[data-mode]")?.dataset.mode;
-  if (mode === "sales" || mode === "costs") {
+  if (mode === "sales" || mode === "costs" || mode === "offs") {
     state.mode = mode;
     state.priceFocus = null;
     state.costFocus = null;
+    state.offFocus = null;
     paint();
+    return;
+  }
+  const offKind = target.closest<HTMLElement>("[data-off-kind]")?.dataset.offKind;
+  if (offKind === "dish" || offKind === "product") {
+    state.offKind = offKind;
+    state.offFocus = offKind === "dish" && !state.offEditing ? "query" : "name";
+    paint();
+    return;
+  }
+  const offPick = target.closest<HTMLElement>("[data-off-pick]")?.dataset.offPick;
+  if (offPick) {
+    const dish = state.catalog.find((item) => item.id === offPick);
+    if (dish) chooseOff(dish.name);
+    return;
+  }
+  const offOwn = target.closest<HTMLElement>("[data-off-own]")?.dataset.offOwn;
+  if (offOwn) {
+    chooseOff(offOwn);
+    return;
+  }
+  if (target.closest("[data-add-off]")) {
+    void commitOff(typedOffName());
+    return;
+  }
+  if (target.closest("[data-save-off]")) {
+    void commitOff(state.offName);
+    return;
+  }
+  if (target.closest("[data-drop-off]")) {
+    void dropOff();
+    return;
+  }
+  if (target.closest("[data-cancel-off]")) {
+    blankOff();
+    paint();
+    return;
+  }
+  const editOffId = target.closest<HTMLElement>("[data-edit-off]")?.dataset.editOff;
+  if (editOffId) {
+    editOff(editOffId);
     return;
   }
   const cat = target.closest<HTMLElement>("[data-cat]")?.dataset.cat;
@@ -832,6 +1139,11 @@ root.addEventListener("keydown", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLInputElement)) return;
   if (target.closest(".adder")) {
+    if (target.dataset.offName !== undefined || target.dataset.offVolume !== undefined) {
+      event.preventDefault();
+      void commitOff(typedOffName());
+      return;
+    }
     if (!neat(state.costItem)) return;
     event.preventDefault();
     addPosition();
@@ -839,6 +1151,14 @@ root.addEventListener("keydown", (event) => {
     return;
   }
   if (!target.closest(".find")) return;
+  if (target.dataset.offQuery !== undefined) {
+    const exact = state.catalog.find((dish) => dish.name.toLocaleLowerCase("ru") === state.offQuery.trim().toLocaleLowerCase("ru"));
+    const name = exact?.name ?? neat(state.offQuery);
+    if (!name || name.length > 80) return;
+    event.preventDefault();
+    chooseOff(name);
+    return;
+  }
   if (target.dataset.costTitle !== undefined || target.dataset.costLabel !== undefined) return;
   if (!state.query.trim()) return;
   event.preventDefault();
@@ -866,14 +1186,16 @@ else {
   const who = (await me.json()) as { role?: string };
   if (who.role !== "worker") location.replace("/admin");
   else {
-    const [menu, sales, costs] = await Promise.all([
+    const [menu, sales, costs, offs] = await Promise.all([
       fetch("/api/menu").then((response) => response.json() as Promise<Dish[]>),
       fetch("/api/sales").then((response) => response.json() as Promise<Sale[]>),
       fetch("/api/expenses").then((response) => response.json() as Promise<Expense[]>),
+      fetch("/api/writeoffs").then((response) => response.json() as Promise<Writeoff[]>),
     ]);
     state.catalog = menu;
     state.sales = sales;
     state.costs = costs;
+    state.offs = offs;
     state.today = new Intl.DateTimeFormat("en-CA", {
       timeZone: "Europe/Moscow",
       year: "numeric",
@@ -882,6 +1204,7 @@ else {
     }).format(new Date());
     state.day = state.today;
     state.costDay = state.today;
+    state.offDay = state.today;
     paint();
   }
 }

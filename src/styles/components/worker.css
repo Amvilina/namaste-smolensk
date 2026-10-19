@@ -92,6 +92,12 @@
   background: oklch(0.97 0.06 98);
 }
 
+.hits button.is-on {
+  padding-inline: 0.45rem;
+  border-radius: 0.6rem;
+  background: #fed502;
+}
+
 .hits button.is-own {
   grid-template-columns: minmax(0, 1fr);
 }
@@ -288,6 +294,8 @@
   margin-bottom: 0.35rem;
 }
 
+.adder input[data-off-name],
+.adder input[data-off-volume],
 .adder input[data-cost-item] {
   flex: 1;
   min-width: 0;
@@ -300,13 +308,23 @@
   font-size: clamp(1.25rem, 1rem + 1vw, 1.7rem);
 }
 
-.adder input[data-cost-item]:focus {
+.adder input[data-off-volume] {
+  flex: 0.8;
+  font-family: var(--font-text);
+  font-size: 1.15rem;
+}
+
+.adder input[data-cost-item]:focus,
+.adder input[data-off-name]:focus,
+.adder input[data-off-volume]:focus {
   outline: none;
   border-bottom-color: #c9a400;
   box-shadow: inset 0 -2px 0 #fed502;
 }
 
-.adder input[data-cost-item]::placeholder {
+.adder input[data-cost-item]::placeholder,
+.adder input[data-off-name]::placeholder,
+.adder input[data-off-volume]::placeholder {
   color: oklch(0.62 0.03 80);
 }
 
@@ -376,6 +394,13 @@
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.bill-lines b.vol {
+  max-width: 46%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .bill-sum {
