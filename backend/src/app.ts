@@ -1,5 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { loadCatalog, type CatalogDish } from "./catalog.ts";
 import { loginPage, emptyPage } from "./pages.ts";
+import { handleApi } from "./sales-api.ts";
+import { fileSales, type SalesStore } from "./sales.ts";
 import { verifyPassword } from "./passwords.ts";
 import { ABSOLUTE_MS, readSession, signSession, WEEK_MS, type Session } from "./session.ts";
 import { DUMMY_PASSWORD_HASH, users as defaultUsers, type Role, type StoredUser } from "./users.ts";
@@ -13,6 +16,8 @@ export type AppOptions = {
   users?: StoredUser[];
   secret: string;
   now?: () => number;
+  catalog?: CatalogDish[];
+  sales?: SalesStore;
 };
 
 type Failure = { count: number; reset: number };
@@ -80,6 +85,8 @@ export function createApp(options: AppOptions) {
   const users = options.users ?? defaultUsers;
   const secret = options.secret;
   const now = options.now ?? Date.now;
+  const catalog = options.catalog ?? [];
+  const sales = options.sales ?? fileSales(process.env.DATA_DIR ?? "/tmp/namaste");
   const failures = new Map<string, Failure>();
 
   function openSession(req: IncomingMessage): { user: StoredUser; session: Session } | null {
@@ -119,6 +126,21 @@ export function createApp(options: AppOptions) {
     const url = new URL(req.url ?? "/", "http://namaste.local");
     const method = req.method ?? "GET";
     const opened = openSession(req);
+
+    if (
+      await handleApi({
+        req,
+        res,
+        url,
+        session: opened?.session ?? null,
+        sales,
+        catalog,
+        now,
+        renew: renewedCookie,
+      })
+    ) {
+      return;
+    }
 
     if (method === "GET" && url.pathname === "/login") {
       if (opened) {
