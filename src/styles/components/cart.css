@@ -233,7 +233,30 @@
   border-color: oklch(0.55 0.18 25);
 }
 
-.cart-form button {
+.handoff {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+}
+
+.handoff button {
+  padding: 0.45em 0.6em;
+  border: 2px solid oklch(0.28 0.03 75);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.handoff button[aria-pressed="true"] {
+  background: #fed502;
+}
+
+.field-address[hidden] {
+  display: none;
+}
+
+.cart-form button[type="submit"] {
   justify-self: start;
   margin-top: 0.15rem;
   padding: 0.55em 1.05em;
@@ -243,16 +266,16 @@
   font-weight: 500;
 }
 
-.cart-form button:disabled {
+.cart-form button[type="submit"]:disabled {
   cursor: default;
 }
 
-.cart-form button.is-ready {
+.cart-form button[type="submit"].is-ready {
   background: oklch(0.24 0.03 70);
   color: oklch(0.98 0.02 98);
 }
 
-.cart-form button.is-ready:hover {
+.cart-form button[type="submit"].is-ready:hover {
   background: oklch(0.34 0.04 70);
 }
 

@@ -369,6 +369,10 @@ export function mountCart() {
   form.className = "cart-form";
   form.noValidate = true;
   form.innerHTML = `
+    <div class="handoff" role="group" aria-label="Способ получения">
+      <button type="button" data-handoff="pickup" aria-pressed="false">Самовывоз</button>
+      <button type="button" data-handoff="delivery" aria-pressed="true">Доставка</button>
+    </div>
     <label class="field field-address">
       <span>Адрес</span>
       <textarea class="input" name="address" rows="4" autocomplete="street-address"></textarea>
@@ -393,8 +397,21 @@ export function mountCart() {
   success.append(bear, done);
 
   const phone = form.querySelector<HTMLInputElement>("[data-phone-ru]");
-  const submit = form.querySelector("button");
-  if (!phone || !submit) throw new Error("Order form is missing.");
+  const submit = form.querySelector<HTMLButtonElement>("button[type=submit]");
+  const handoff = [...form.querySelectorAll<HTMLButtonElement>("[data-handoff]")];
+  const address = form.querySelector<HTMLLabelElement>(".field-address");
+  if (!phone || !submit || handoff.length !== 2 || !address) throw new Error("Order form is missing.");
+
+  const paintHandoff = () => {
+    const pickup = handoff.find((button) => button.dataset.handoff === "pickup");
+    address.hidden = pickup?.getAttribute("aria-pressed") === "true";
+  };
+  for (const button of handoff) {
+    button.addEventListener("click", () => {
+      for (const item of handoff) item.setAttribute("aria-pressed", item === button ? "true" : "false");
+      paintHandoff();
+    });
+  }
 
   const paintOrder = () => {
     const ready = isPhoneRuComplete(phone.value);
@@ -427,6 +444,10 @@ export function mountCart() {
     form.reset();
     phone.value = "+7";
     phone.setCustomValidity("");
+    for (const button of handoff) {
+      button.setAttribute("aria-pressed", button.dataset.handoff === "delivery" ? "true" : "false");
+    }
+    paintHandoff();
     paintOrder();
   });
 
