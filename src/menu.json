@@ -401,5 +401,51 @@
         "price": 50
       }
     ]
+  },
+  {
+    "id": "sauces",
+    "title": "Соусы",
+    "dishes": [
+      {
+        "id": "sauce-tomato",
+        "name": "Heinz томатный",
+        "note": "",
+        "amount": "25 мл",
+        "image": "/sauce-tomato.webp",
+        "price": 40
+      },
+      {
+        "id": "sauce-cheese",
+        "name": "Heinz сырный",
+        "note": "",
+        "amount": "25 мл",
+        "image": "/sauce-cheese.webp",
+        "price": 40
+      },
+      {
+        "id": "sauce-bbq",
+        "name": "Heinz барбекю",
+        "note": "",
+        "amount": "25 мл",
+        "image": "/sauce-bbq.webp",
+        "price": 40
+      },
+      {
+        "id": "sauce-garlic",
+        "name": "Heinz чесночный",
+        "note": "",
+        "amount": "25 мл",
+        "image": "/sauce-garlic.webp",
+        "price": 40
+      },
+      {
+        "id": "sauce-sweet",
+        "name": "Heinz кисло-сладкий",
+        "note": "",
+        "amount": "25 мл",
+        "image": "/sauce-sweet.webp",
+        "price": 40
+      }
+    ]
   }
 ]

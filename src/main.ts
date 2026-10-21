@@ -163,20 +163,19 @@ for (const section of menu) {
     list.append(item);
   }
 
+  const heading = document.createElement("div");
+  heading.className = "section-title";
   const mark = sectionMark[section.id];
   if (mark) {
-    const heading = document.createElement("div");
-    heading.className = "section-title";
     const badge = document.createElement("img");
     badge.src = mark;
     badge.alt = "";
     badge.width = 512;
     badge.height = 512;
-    heading.append(badge, title);
-    inner.append(heading, list);
-  } else {
-    inner.append(title, list);
+    heading.append(badge);
   }
+  heading.append(title);
+  inner.append(heading, list);
 
   block.append(inner);
   board.append(block);
