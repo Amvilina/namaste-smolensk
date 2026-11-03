@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { newExpense, parseExpenseBody, type Expense, type ExpenseStore } from "./expenses.ts";
+import { expensePeriod, newExpense, parseExpenseBody, type Expense, type ExpenseStore } from "./expenses.ts";
 import { moscowDay, parseDay } from "./sales.ts";
 import type { Session } from "./session.ts";
 
@@ -21,6 +21,16 @@ function send(res: ServerResponse, status: number, body: unknown, cookie?: strin
   if (cookie) headers["set-cookie"] = cookie;
   res.writeHead(status, headers);
   res.end(JSON.stringify(body));
+}
+
+function anchorDay(role: string, bodyDay: unknown, today: string, fallback: string | null): string | null {
+  if (typeof bodyDay === "string") {
+    const parsed = parseDay(bodyDay, today);
+    if (!parsed || (role !== "admin" && parsed !== today)) return null;
+    return parsed;
+  }
+  if (bodyDay !== undefined) return null;
+  return role === "admin" ? fallback : today;
 }
 
 async function readJson(req: IncomingMessage): Promise<unknown> {
@@ -51,22 +61,23 @@ export async function handleExpenses(ctx: Ctx): Promise<boolean> {
 
   if (method === "GET" && url.pathname === "/api/expenses") {
     const items = await ctx.expenses.list();
-    items.sort((a, b) => b.day.localeCompare(a.day) || b.createdAt.localeCompare(a.createdAt));
+    const stamp = (item: Expense) => item.day ?? item.month ?? "";
+    items.sort((a, b) => stamp(b).localeCompare(stamp(a)) || b.createdAt.localeCompare(a.createdAt));
     send(res, 200, items, cookie);
     return true;
   }
 
   if (method === "POST" && url.pathname === "/api/expenses") {
-    const body = (await readJson(req)) as { category?: unknown; label?: unknown; title?: unknown; lines?: unknown; day?: unknown } | null;
+    const body = (await readJson(req)) as { kind?: unknown; name?: unknown; amount?: unknown; month?: unknown; day?: unknown } | null;
     const parsed = parseExpenseBody(body);
     const now = ctx.now();
     const today = moscowDay(now);
-    const day = ctx.session.role === "admin" ? parseDay(body?.day, today) : today;
-    if (!parsed || !day) {
+    const day = anchorDay(ctx.session.role, body?.day, today, null);
+    if (!parsed || !day || (body?.month !== undefined && body.month !== true && body.month !== false)) {
       send(res, 400, { error: "bad" }, cookie);
       return true;
     }
-    const expense = newExpense(day, parsed, now);
+    const expense = newExpense(expensePeriod(body?.month === true, day), parsed, now);
     await ctx.expenses.add(expense);
     send(res, 201, expense, cookie);
     return true;
@@ -74,19 +85,25 @@ export async function handleExpenses(ctx: Ctx): Promise<boolean> {
 
   const match = url.pathname.match(/^\/api\/expenses\/([0-9a-f-]{36})$/);
   if (method === "PATCH" && match) {
-    const body = (await readJson(req)) as { category?: unknown; label?: unknown; title?: unknown; lines?: unknown; day?: unknown } | null;
+    const body = (await readJson(req)) as { kind?: unknown; name?: unknown; amount?: unknown; month?: unknown; day?: unknown } | null;
     const parsed = parseExpenseBody(body);
     const current = (await ctx.expenses.list()).find((item) => item.id === match[1]);
     if (!current) {
       send(res, 404, { error: "missing" }, cookie);
       return true;
     }
-    const day = body?.day === undefined ? current.day : parseDay(body.day, moscowDay(ctx.now()));
-    if (!parsed || !day) {
+    const today = moscowDay(ctx.now());
+    const day = anchorDay(ctx.session.role, body?.day, today, current.day ?? (current.month ? `${current.month}-01` : null));
+    if (!parsed || !day || (body?.month !== undefined && body.month !== true && body.month !== false)) {
       send(res, 400, { error: "bad" }, cookie);
       return true;
     }
-    const next: Expense = { ...current, ...parsed, day, updatedAt: new Date(ctx.now()).toISOString() };
+    const next: Expense = {
+      ...current,
+      ...parsed,
+      ...expensePeriod(body?.month === true, day),
+      updatedAt: new Date(ctx.now()).toISOString(),
+    };
     await ctx.expenses.replace(current.id, next);
     send(res, 200, next, cookie);
     return true;

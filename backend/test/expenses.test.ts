@@ -29,7 +29,7 @@ async function login(base: string, loginName: string, password: string): Promise
   return (response.headers.getSetCookie()[0] ?? "").split(";")[0] ?? "";
 }
 
-test("воркер пишет затрату с категорией и комментарием", async () => {
+test("воркер пишет затрату или инвестицию, за день или за месяц", async () => {
   const now = Date.parse("2026-10-19T10:00:00Z");
   const users: StoredUser[] = [
     { login: "worker", role: "worker", passwordHash: await hashPassword("worker-pass") },
@@ -43,71 +43,54 @@ test("воркер пишет затрату с категорией и комм
     const created = await fetch(base + "/api/expenses", {
       method: "POST",
       headers: { cookie: worker, "content-type": "application/json" },
-      body: JSON.stringify({
-        category: "products",
-        title: "  Закупка  ",
-        lines: [
-          { name: "Мука", amount: 200 },
-          { name: "Соль", amount: 0 },
-        ],
-      }),
+      body: JSON.stringify({ kind: "cost", name: "  Мука  ", amount: 200 }),
     });
     assert.equal(created.status, 201);
     const expense = (await created.json()) as {
       id: string;
-      day: string;
-      category: string;
-      label: string;
-      title: string;
-      lines: { name: string; amount: number }[];
+      day: string | null;
+      month: string | null;
+      kind: string;
+      name: string;
+      amount: number;
     };
     assert.equal(expense.day, moscowDay(now));
-    assert.equal(expense.category, "products");
-    assert.equal(expense.label, "Продукты");
-    assert.equal(expense.title, "Закупка");
-    assert.equal(expense.lines[0]?.name, "Мука");
-    assert.equal(expense.lines[1]?.amount, 0);
+    assert.equal(expense.month, null);
+    assert.equal(expense.kind, "cost");
+    assert.equal(expense.name, "Мука");
+    assert.equal(expense.amount, 200);
 
     const edited = await fetch(base + "/api/expenses/" + expense.id, {
       method: "PATCH",
       headers: { cookie: worker, "content-type": "application/json" },
-      body: JSON.stringify({
-        category: "other",
-        label: "Такси",
-        title: "Смена",
-        lines: [{ name: "До метро", amount: 400 }],
-      }),
+      body: JSON.stringify({ kind: "investment", name: "Стол", amount: 400, month: true }),
     });
     assert.equal(edited.status, 200);
-    const next = (await edited.json()) as { day: string; label: string; title: string; lines: { amount: number }[] };
-    assert.equal(next.label, "Такси");
-    assert.equal(next.title, "Смена");
-    assert.equal(next.lines[0]?.amount, 400);
-    assert.equal(next.day, expense.day);
+    const next = (await edited.json()) as { day: string | null; month: string | null; kind: string; name: string; amount: number };
+    assert.equal(next.kind, "investment");
+    assert.equal(next.name, "Стол");
+    assert.equal(next.amount, 400);
+    assert.equal(next.day, null);
+    assert.equal(next.month, moscowDay(now).slice(0, 7));
 
     const future = await fetch(base + "/api/expenses/" + expense.id, {
       method: "PATCH",
       headers: { cookie: worker, "content-type": "application/json" },
-      body: JSON.stringify({
-        category: "products",
-        title: "Закупка",
-        lines: [{ name: "Мука", amount: 10 }],
-        day: "2026-10-20",
-      }),
+      body: JSON.stringify({ kind: "cost", name: "Мука", amount: 10, day: "2026-10-20" }),
     });
     assert.equal(future.status, 400);
 
     const bad = await fetch(base + "/api/expenses", {
       method: "POST",
       headers: { cookie: worker, "content-type": "application/json" },
-      body: JSON.stringify({ category: "other", title: "Своё", lines: [{ name: "Пакет", amount: 10 }] }),
+      body: JSON.stringify({ kind: "other", name: "Пакет", amount: 10 }),
     });
     assert.equal(bad.status, 400);
 
     const negative = await fetch(base + "/api/expenses", {
       method: "POST",
       headers: { cookie: worker, "content-type": "application/json" },
-      body: JSON.stringify({ category: "tech", title: "Лампочка", lines: [{ name: "Лампа", amount: -1 }] }),
+      body: JSON.stringify({ kind: "cost", name: "Лампа", amount: -1 }),
     });
     assert.equal(negative.status, 400);
 
@@ -122,10 +105,12 @@ test("воркер пишет затрату с категорией и комм
     const older = await fetch(base + "/api/expenses", {
       method: "POST",
       headers: { cookie: admin, "content-type": "application/json" },
-      body: JSON.stringify({ day: "2026-10-18", category: "wage", title: "Смена", lines: [{ name: "Смена", amount: 1 }] }),
+      body: JSON.stringify({ day: "2026-10-18", kind: "cost", name: "Смена", amount: 1, month: true }),
     });
     assert.equal(older.status, 201);
-    assert.equal(((await older.json()) as { day: string }).day, "2026-10-18");
+    const olderRow = (await older.json()) as { day: string | null; month: string | null };
+    assert.equal(olderRow.day, null);
+    assert.equal(olderRow.month, "2026-10");
   } finally {
     server.close();
   }

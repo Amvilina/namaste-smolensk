@@ -1,6 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 
 export const KINDS = ["dish", "product"] as const;
 
@@ -44,38 +42,6 @@ export function parseWriteoffBody(body: { kind?: unknown; name?: unknown; volume
   return { kind, name, volume };
 }
 
-function settle(item: {
-  id?: string;
-  day?: string;
-  kind?: unknown;
-  name?: unknown;
-  volume?: unknown;
-  lines?: unknown;
-  createdAt?: string;
-  updatedAt?: string;
-}): Writeoff | null {
-  if (!item.id || !item.day) return null;
-  const direct = parseWriteoffBody(item);
-  const parsed =
-    direct ??
-    (() => {
-      const kind = parseKind(item.kind);
-      const first = Array.isArray(item.lines) ? (item.lines[0] as { name?: unknown; qty?: unknown } | undefined) : undefined;
-      const name = parseText(first?.name);
-      const volume = typeof first?.qty === "number" ? String(first.qty) : null;
-      if (!kind || !name || !volume) return null;
-      return { kind, name, volume };
-    })();
-  if (!parsed) return null;
-  return {
-    id: item.id,
-    day: item.day,
-    ...parsed,
-    createdAt: item.createdAt ?? "",
-    updatedAt: item.updatedAt ?? "",
-  };
-}
-
 export function memoryWriteoffs(): WriteoffStore {
   const items: Writeoff[] = [];
   return {
@@ -97,64 +63,6 @@ export function memoryWriteoffs(): WriteoffStore {
       items.splice(index, 1);
       return true;
     },
-  };
-}
-
-export function fileWriteoffs(dir: string): WriteoffStore {
-  const file = join(dir, "writeoffs.json");
-  let chain = Promise.resolve();
-  const run = <T>(job: () => Promise<T>): Promise<T> => {
-    const next = chain.then(job, job);
-    chain = next.then(
-      () => undefined,
-      () => undefined,
-    );
-    return next;
-  };
-  const read = async (): Promise<Writeoff[]> => {
-    try {
-      const parsed = JSON.parse(await readFile(file, "utf8")) as unknown;
-      if (!Array.isArray(parsed)) return [];
-      return parsed.flatMap((item) => {
-        const row = settle(item as Writeoff);
-        return row ? [row] : [];
-      });
-    } catch {
-      return [];
-    }
-  };
-  const write = async (items: Writeoff[]) => {
-    await mkdir(dir, { recursive: true });
-    const tmp = `${file}.tmp`;
-    await writeFile(tmp, JSON.stringify(items));
-    await rename(tmp, file);
-  };
-  return {
-    list: () => run(read),
-    add: (item) =>
-      run(async () => {
-        const items = await read();
-        items.push(item);
-        await write(items);
-      }),
-    replace: (id, item) =>
-      run(async () => {
-        const items = await read();
-        const index = items.findIndex((row) => row.id === id);
-        if (index < 0) return false;
-        items[index] = item;
-        await write(items);
-        return true;
-      }),
-    remove: (id) =>
-      run(async () => {
-        const items = await read();
-        const index = items.findIndex((row) => row.id === id);
-        if (index < 0) return false;
-        items.splice(index, 1);
-        await write(items);
-        return true;
-      }),
   };
 }
 

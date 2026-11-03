@@ -2,9 +2,6 @@ import { createServer } from "node:http";
 import { createApp } from "./app.ts";
 import { loadCatalog } from "./catalog.ts";
 import { loadSecret } from "./secret.ts";
-import { fileExpenses } from "./expenses.ts";
-import { fileSales } from "./sales.ts";
-import { fileWriteoffs } from "./writeoffs.ts";
 
 const port = Number(process.env.PORT ?? 8080);
 const dataDir = process.env.DATA_DIR ?? "/tmp/namaste";
@@ -13,9 +10,6 @@ const server = createServer(
   createApp({
     secret,
     catalog: loadCatalog(),
-    sales: fileSales(dataDir),
-    expenses: fileExpenses(dataDir),
-    writeoffs: fileWriteoffs(dataDir),
   }),
 );
 

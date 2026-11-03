@@ -8,4 +8,4 @@ ENV PORT=8080
 ENV DATA_DIR=/data
 ENV MENU_PATH=/app/menu.json
 EXPOSE 8080
-CMD ["node", "--experimental-strip-types", "src/server.ts"]
+CMD ["node", "--experimental-strip-types", "--experimental-sqlite", "src/server.ts"]

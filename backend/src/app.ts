@@ -1,12 +1,14 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { join } from "node:path";
 import { loadCatalog, type CatalogDish } from "./catalog.ts";
-import { fileExpenses, type ExpenseStore } from "./expenses.ts";
+import type { ExpenseStore } from "./expenses.ts";
 import { handleExpenses } from "./expenses-api.ts";
-import { fileWriteoffs, type WriteoffStore } from "./writeoffs.ts";
+import { ledgerStores } from "./ledger.ts";
+import type { WriteoffStore } from "./writeoffs.ts";
 import { handleWriteoffs } from "./writeoffs-api.ts";
 import { loginPage, emptyPage } from "./pages.ts";
 import { handleApi } from "./sales-api.ts";
-import { fileSales, type SalesStore } from "./sales.ts";
+import type { SalesStore } from "./sales.ts";
 import { verifyPassword } from "./passwords.ts";
 import { ABSOLUTE_MS, readSession, signSession, WEEK_MS, type Session } from "./session.ts";
 import { DUMMY_PASSWORD_HASH, users as defaultUsers, type Role, type StoredUser } from "./users.ts";
@@ -93,9 +95,10 @@ export function createApp(options: AppOptions) {
   const now = options.now ?? Date.now;
   const catalog = options.catalog ?? [];
   const dataDir = process.env.DATA_DIR ?? "/tmp/namaste";
-  const sales = options.sales ?? fileSales(dataDir);
-  const expenses = options.expenses ?? fileExpenses(dataDir);
-  const writeoffs = options.writeoffs ?? fileWriteoffs(dataDir);
+  const ledger = options.sales && options.expenses && options.writeoffs ? null : ledgerStores(join(dataDir, "namaste.sqlite"));
+  const sales = options.sales ?? ledger!.sales;
+  const expenses = options.expenses ?? ledger!.expenses;
+  const writeoffs = options.writeoffs ?? ledger!.writeoffs;
   const failures = new Map<string, Failure>();
 
   function openSession(req: IncomingMessage): { user: StoredUser; session: Session } | null {

@@ -29,21 +29,15 @@ type Sale = {
   lines: { dishId: string; name: string; price: number; qty: number; extras?: Extra[] }[];
 };
 
-type Category = "products" | "tech" | "wage" | "rent" | "other";
-
-type CostLine = {
-  key: string;
-  name: string;
-  amount: number | null;
-};
+type ExpenseKind = "cost" | "investment";
 
 type Expense = {
   id: string;
-  day: string;
-  category: Category;
-  label: string;
-  title: string;
-  lines: { name: string; amount: number }[];
+  kind: ExpenseKind;
+  name: string;
+  amount: number;
+  day: string | null;
+  month: string | null;
 };
 
 type OffKind = "dish" | "product";
@@ -56,12 +50,9 @@ type Writeoff = {
   volume: string;
 };
 
-const CATS: { id: Category; name: string }[] = [
-  { id: "products", name: "Продукты" },
-  { id: "tech", name: "Техническое" },
-  { id: "wage", name: "Зарплата" },
-  { id: "rent", name: "Аренда" },
-  { id: "other", name: "Другое" },
+const KINDS: { id: ExpenseKind; name: string }[] = [
+  { id: "cost", name: "Затраты" },
+  { id: "investment", name: "Инвестиции" },
 ];
 
 let lineSeq = 0;
@@ -90,16 +81,13 @@ const state: {
   error: string;
   mode: "sales" | "costs" | "offs";
   costs: Expense[];
-  costCategory: Category;
-  costLabel: string;
-  costTitle: string;
-  costItem: string;
+  costKind: ExpenseKind;
+  costName: string;
   costPrice: number | null;
-  costDraft: CostLine[];
+  costMonth: boolean;
   costEditing: string | null;
   costDay: string;
   costError: string;
-  costFocus: string | null;
   offs: Writeoff[];
   offKind: OffKind;
   offQuery: string;
@@ -122,16 +110,13 @@ const state: {
   error: "",
   mode: "sales",
   costs: [],
-  costCategory: "products",
-  costLabel: "",
-  costTitle: "",
-  costItem: "",
+  costKind: "cost",
+  costName: "",
   costPrice: 0,
-  costDraft: [],
+  costMonth: false,
   costEditing: null,
   costDay: "",
   costError: "",
-  costFocus: null,
   offs: [],
   offKind: "dish",
   offQuery: "",
@@ -193,102 +178,56 @@ function neat(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
-function plainCost(category: Category = state.costCategory): boolean {
-  return category === "wage" || category === "rent";
+function kindName(kind: ExpenseKind): string {
+  return KINDS.find((item) => item.id === kind)?.name ?? "";
 }
 
 function costReady(): boolean {
-  if (!neat(state.costTitle) || neat(state.costTitle).length > 80) return false;
-  if (state.costCategory === "other" && (!neat(state.costLabel) || neat(state.costLabel).length > 80)) return false;
-  if (plainCost()) return state.costPrice !== null;
-  return state.costDraft.length > 0 && state.costDraft.every((line) => line.amount !== null);
+  const name = neat(state.costName);
+  return name.length > 0 && name.length <= 80 && state.costPrice !== null;
 }
 
-function addPosition(): void {
-  const name = neat(state.costItem);
-  if (!name || name.length > 80) return;
-  state.costDraft.unshift({ key: lineKey(), name, amount: state.costPrice ?? 0 });
-  state.costItem = "";
-  state.costPrice = 0;
-  state.costError = "";
-  state.costFocus = "item";
+function monthLabel(month: string): string {
+  const [year, part] = month.split("-").map(Number);
+  return new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric", timeZone: "UTC" }).format(
+    new Date(Date.UTC(year, part - 1, 1)),
+  );
 }
 
-function costGroups(): { day: string; items: Expense[] }[] {
-  const map = new Map<string, Expense[]>();
-  for (const item of state.costs) {
-    if (item.day !== state.today) continue;
-    const list = map.get(item.day) ?? [];
-    list.push(item);
-    map.set(item.day, list);
-  }
-  return [...map.entries()].map(([day, items]) => ({ day, items }));
+function costCard(item: Expense): string {
+  return `<article class="past-card">
+    <div class="entry-top"><span class="mark">${esc(kindName(item.kind))}</span><b class="entry-sum">${rub(item.amount)}</b></div>
+    <p class="entry-name">${esc(item.name)}</p>
+    <button class="past-edit" type="button" data-edit-cost="${esc(item.id)}">Править</button>
+  </article>`;
 }
 
 function costDesk(): string {
-  const plain = plainCost();
-  const total = state.costDraft.reduce((sum, line) => sum + (line.amount ?? 0), 0);
+  const dayItems = state.costs.filter((item) => item.day === state.today);
+  const month = state.today.slice(0, 7);
+  const monthItems = state.costs.filter((item) => item.month === month);
   return `
     <section>
       <p class="day-line">
         <time datetime="${esc(state.costDay)}">${esc(dayLabel(state.costDay))}</time>
       </p>
       <div class="cats">
-        ${CATS.map(
-          (cat) =>
-            `<button type="button" class="add${state.costCategory === cat.id ? " is-on" : ""}" data-cat="${cat.id}">${cat.name}</button>`,
+        ${KINDS.map(
+          (kind) =>
+            `<button type="button" class="add${state.costKind === kind.id ? " is-on" : ""}" data-kind="${kind.id}">${kind.name}</button>`,
         ).join("")}
-        ${
-          state.costCategory === "other"
-            ? `<label class="other"><input data-cost-label value="${esc(state.costLabel)}" placeholder="Название" maxlength="80" autocomplete="off" /></label>`
-            : ""
-        }
       </div>
-      ${
-        plain
-          ? `<div class="plain">
+      <label class="month-flag"><input type="checkbox" data-cost-month ${state.costMonth ? "checked" : ""} /> За месяц</label>
+      <div class="plain">
         <label class="find cost-title">
-          <input data-cost-title value="${esc(state.costTitle)}" placeholder="Название" maxlength="80" autocomplete="off" />
+          <input data-cost-name value="${esc(state.costName)}" placeholder="Название" maxlength="80" autocomplete="off" />
         </label>
         <input class="rub-edit" data-cost-price inputmode="numeric" value="${state.costPrice ?? ""}" />
-      </div>`
-          : `<label class="find cost-title">
-        <input data-cost-title value="${esc(state.costTitle)}" placeholder="Название" maxlength="80" autocomplete="off" />
-      </label>
-      <div class="adder">
-        <input data-cost-item value="${esc(state.costItem)}" placeholder="Позиция" maxlength="80" autocomplete="off" />
-        <input class="rub-edit" data-cost-price inputmode="numeric" value="${state.costPrice ?? ""}" />
-        <span class="step"><button type="button" data-add-cost aria-label="Добавить">+</button></span>
-      </div>`
-      }
+      </div>
       <div class="slip">
-        ${
-          plain
-            ? ""
-            : state.costDraft
-                .map(
-                  (line) => `<article class="cost-line">
-              <div class="line-name">${esc(line.name)}</div>
-              <div class="line-tools">
-                ${
-                  state.costFocus === line.key
-                    ? `<input class="rub-edit" data-cost-amount="${esc(line.key)}" inputmode="numeric" value="${line.amount ?? ""}" />`
-                    : `<button class="rub" type="button" data-cost-open="${esc(line.key)}">${line.amount === null ? "—" : rub(line.amount)}</button>`
-                }
-                <button class="drop" type="button" data-drop-cost-line="${esc(line.key)}" aria-label="Убрать">×</button>
-              </div>
-            </article>`,
-                )
-                .join("")
-        }
-        ${!plain && state.costDraft.length ? `<p class="total">${rub(total)}</p>` : ""}
         <div>
-          ${
-            state.costEditing && !plain && state.costDraft.length === 0
-              ? `<button class="record" type="button" data-drop-cost>Удалить</button>`
-              : `<button class="record" type="button" data-save-cost ${costReady() ? "" : "disabled"}>${state.costEditing ? "Сохранить" : "Записать"}</button>`
-          }
-          ${state.costEditing && plain ? `<button class="ghost" type="button" data-drop-cost>Удалить</button>` : ""}
+          <button class="record" type="button" data-save-cost ${costReady() ? "" : "disabled"}>${state.costEditing ? "Сохранить" : "Записать"}</button>
+          ${state.costEditing ? `<button class="ghost" type="button" data-drop-cost>Удалить</button>` : ""}
           ${state.costEditing ? `<button class="ghost" type="button" data-cancel-cost>Отмена</button>` : ""}
         </div>
         ${state.costError ? `<p class="miss">${esc(state.costError)}</p>` : ""}
@@ -296,29 +235,16 @@ function costDesk(): string {
     </section>
     <section class="history">
       <ul class="past">
-        ${costGroups()
-          .map(
-            (group) => `<li class="past-day">
-              <h2 class="past-date">${esc(dayLabel(group.day))}</h2>
-              ${group.items
-                .map(
-                  (item) => `<article class="past-card">
-                    <div class="entry-top"><span class="mark">${esc(item.label)}</span><b class="entry-sum">${rub(item.lines.reduce((sum, line) => sum + line.amount, 0))}</b></div>
-                    <p class="entry-name">${esc(item.title)}</p>
-                    ${
-                      plainCost(item.category)
-                        ? ""
-                        : `<ul class="entry-lines positions">${item.lines
-                            .map((line) => `<li class="entry-row"><span class="entry-label">${esc(line.name)}</span><b class="entry-sum">${rub(line.amount)}</b></li>`)
-                            .join("")}</ul>`
-                    }
-                    <button class="past-edit" type="button" data-edit-cost="${esc(item.id)}">Править</button>
-                  </article>`,
-                )
-                .join("")}
-            </li>`,
-          )
-          .join("")}
+        ${
+          dayItems.length
+            ? `<li class="past-day"><h2 class="past-date">${esc(dayLabel(state.today))}</h2>${dayItems.map((item) => costCard(item)).join("")}</li>`
+            : ""
+        }
+        ${
+          monthItems.length
+            ? `<li class="past-day"><h2 class="past-date">${esc(monthLabel(month))}</h2>${monthItems.map((item) => costCard(item)).join("")}</li>`
+            : ""
+        }
       </ul>
     </section>
   `;
@@ -484,21 +410,7 @@ function focusDesk(caret: number | null): void {
     root.querySelector<HTMLInputElement>("[data-off-volume]")?.focus();
     return;
   }
-  if (state.costFocus === "label") {
-    root.querySelector<HTMLInputElement>("[data-cost-label]")?.focus();
-    return;
-  }
-  if (state.costFocus === "item") {
-    root.querySelector<HTMLInputElement>("[data-cost-item]")?.focus();
-    return;
-  }
-  if (state.costFocus) {
-    const field = root.querySelector<HTMLInputElement>(`[data-cost-amount="${state.costFocus}"]`);
-    field?.focus();
-    field?.select();
-    return;
-  }
-  const nextSearch = root.querySelector<HTMLInputElement>(".find input:not([data-cost-title]):not([data-cost-item])");
+  const nextSearch = root.querySelector<HTMLInputElement>(".find input:not([data-cost-name])");
   if (caret !== null && nextSearch) {
     nextSearch.focus();
     nextSearch.setSelectionRange(caret, caret);
@@ -511,7 +423,7 @@ function focusDesk(caret: number | null): void {
 }
 
 function paint(): void {
-  const search = root.querySelector<HTMLInputElement>(".find input:not([data-cost-title]):not([data-cost-item])");
+  const search = root.querySelector<HTMLInputElement>(".find input:not([data-cost-name])");
   const caret = search && document.activeElement === search ? search.selectionStart : null;
   const total = state.draft.reduce((sum, line) => sum + lineSum(line), 0);
   const hits = matches();
@@ -761,15 +673,12 @@ async function dropSale(): Promise<void> {
 
 function blankCost(): void {
   state.costEditing = null;
-  state.costCategory = "products";
-  state.costLabel = "";
-  state.costTitle = "";
-  state.costItem = "";
+  state.costKind = "cost";
+  state.costName = "";
   state.costPrice = 0;
-  state.costDraft = [];
+  state.costMonth = false;
   state.costDay = state.today;
   state.costError = "";
-  state.costFocus = null;
 }
 
 async function reloadCosts(): Promise<void> {
@@ -783,13 +692,11 @@ async function saveCost(): Promise<void> {
     method: state.costEditing ? "PATCH" : "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      category: state.costCategory,
-      title: neat(state.costTitle),
-      ...(state.costCategory === "other" ? { label: neat(state.costLabel) } : {}),
-      lines: plainCost()
-        ? [{ name: neat(state.costTitle), amount: state.costPrice ?? 0 }]
-        : state.costDraft.map((line) => ({ name: line.name, amount: line.amount })),
-      ...(state.costEditing ? {} : { day: state.costDay }),
+      kind: state.costKind,
+      name: neat(state.costName),
+      amount: state.costPrice ?? 0,
+      month: state.costMonth,
+      day: state.costDay,
     }),
   });
   if (!response.ok) {
@@ -819,21 +726,12 @@ function editCost(id: string): void {
   const item = state.costs.find((row) => row.id === id);
   if (!item) return;
   state.costEditing = item.id;
-  state.costDay = item.day;
-  state.costCategory = item.category;
-  state.costLabel = item.category === "other" ? item.label : "";
-  state.costTitle = item.title;
-  state.costItem = "";
-  state.costPrice = plainCost(item.category) ? item.lines.reduce((sum, line) => sum + line.amount, 0) : 0;
-  state.costDraft = plainCost(item.category)
-    ? []
-    : item.lines.map((line) => ({
-        key: lineKey(),
-        name: line.name,
-        amount: line.amount,
-      }));
+  state.costDay = item.day ?? state.today;
+  state.costKind = item.kind;
+  state.costName = item.name;
+  state.costPrice = item.amount;
+  state.costMonth = item.month !== null;
   state.costError = "";
-  state.costFocus = null;
   paint();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -941,20 +839,10 @@ function editSale(id: string): void {
 root.addEventListener("input", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLInputElement)) return;
-  if (target.dataset.costTitle !== undefined) {
-    state.costTitle = target.value;
+  if (target.dataset.costName !== undefined) {
+    state.costName = target.value;
     const record = root.querySelector<HTMLButtonElement>("[data-save-cost]");
     if (record) record.disabled = !costReady();
-    return;
-  }
-  if (target.dataset.costLabel !== undefined) {
-    state.costLabel = target.value;
-    const record = root.querySelector<HTMLButtonElement>("[data-save-cost]");
-    if (record) record.disabled = !costReady();
-    return;
-  }
-  if (target.dataset.costItem !== undefined) {
-    state.costItem = target.value;
     return;
   }
   if (target.dataset.offQuery !== undefined) {
@@ -986,16 +874,6 @@ root.addEventListener("input", (event) => {
     paint();
     return;
   }
-  if (target.dataset.costAmount) {
-    const line = state.costDraft.find((item) => item.key === target.dataset.costAmount);
-    if (!line) return;
-    const digits = target.value.replace(/\D/g, "");
-    line.amount = digits === "" ? null : Number(digits);
-    target.value = digits;
-    const record = root.querySelector<HTMLButtonElement>("[data-save-cost]");
-    if (record) record.disabled = !costReady();
-    return;
-  }
   const id = target.dataset.price;
   if (!id) return;
   const line = state.draft.find((item) => item.key === id);
@@ -1012,7 +890,6 @@ root.addEventListener("click", (event) => {
   if (mode === "sales" || mode === "costs" || mode === "offs") {
     state.mode = mode;
     state.priceFocus = null;
-    state.costFocus = null;
     state.offFocus = null;
     paint();
     return;
@@ -1057,28 +934,9 @@ root.addEventListener("click", (event) => {
     editOff(editOffId);
     return;
   }
-  const cat = target.closest<HTMLElement>("[data-cat]")?.dataset.cat;
-  if (cat === "products" || cat === "tech" || cat === "wage" || cat === "rent" || cat === "other") {
-    state.costCategory = cat;
-    state.costFocus = cat === "other" ? "label" : null;
-    paint();
-    return;
-  }
-  if (target.closest("[data-add-cost]")) {
-    addPosition();
-    paint();
-    return;
-  }
-  const openCost = target.closest<HTMLElement>("[data-cost-open]")?.dataset.costOpen;
-  if (openCost) {
-    state.costFocus = openCost;
-    paint();
-    return;
-  }
-  const dropCostLine = target.closest<HTMLElement>("[data-drop-cost-line]")?.dataset.dropCostLine;
-  if (dropCostLine) {
-    state.costDraft = state.costDraft.filter((line) => line.key !== dropCostLine);
-    state.costFocus = null;
+  const kind = target.closest<HTMLElement>("[data-kind]")?.dataset.kind;
+  if (kind === "cost" || kind === "investment") {
+    state.costKind = kind;
     paint();
     return;
   }
@@ -1181,11 +1039,6 @@ root.addEventListener("keydown", (event) => {
       void commitOff(typedOffName());
       return;
     }
-    if (!neat(state.costItem)) return;
-    event.preventDefault();
-    addPosition();
-    paint();
-    return;
   }
   if (!target.closest(".find")) return;
   if (target.dataset.offQuery !== undefined) {
@@ -1196,7 +1049,11 @@ root.addEventListener("keydown", (event) => {
     chooseOff(name);
     return;
   }
-  if (target.dataset.costTitle !== undefined || target.dataset.costLabel !== undefined) return;
+  if (target.dataset.costName !== undefined) {
+    event.preventDefault();
+    void saveCost();
+    return;
+  }
   if (!state.query.trim()) return;
   event.preventDefault();
   takeTyped();
@@ -1209,12 +1066,13 @@ root.addEventListener("focusout", (event) => {
   if (target.dataset.price) {
     state.priceFocus = null;
     paint();
-    return;
   }
-  if (target.dataset.costAmount) {
-    state.costFocus = null;
-    paint();
-  }
+});
+
+root.addEventListener("change", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLInputElement) || target.dataset.costMonth === undefined) return;
+  state.costMonth = target.checked;
 });
 
 const me = await fetch("/api/me");

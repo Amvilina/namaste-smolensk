@@ -1,6 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 import type { CatalogDish } from "./catalog.ts";
 
 export type SaleExtra = {
@@ -122,61 +120,6 @@ export function memorySales(): SalesStore {
       items.splice(index, 1);
       return true;
     },
-  };
-}
-
-export function fileSales(dir: string): SalesStore {
-  const file = join(dir, "sales.json");
-  let chain = Promise.resolve();
-  const run = <T>(job: () => Promise<T>): Promise<T> => {
-    const next = chain.then(job, job);
-    chain = next.then(
-      () => undefined,
-      () => undefined,
-    );
-    return next;
-  };
-  const read = async (): Promise<Sale[]> => {
-    try {
-      const parsed = JSON.parse(await readFile(file, "utf8")) as unknown;
-      if (!Array.isArray(parsed)) return [];
-      return (parsed as Sale[]).map((sale) => ({ ...sale, pay: sale.pay === "card" ? "card" : "cash" }));
-    } catch {
-      return [];
-    }
-  };
-  const write = async (items: Sale[]) => {
-    await mkdir(dir, { recursive: true });
-    const tmp = `${file}.tmp`;
-    await writeFile(tmp, JSON.stringify(items));
-    await rename(tmp, file);
-  };
-  return {
-    list: () => run(read),
-    add: (sale) =>
-      run(async () => {
-        const items = await read();
-        items.push(sale);
-        await write(items);
-      }),
-    replace: (id, sale) =>
-      run(async () => {
-        const items = await read();
-        const index = items.findIndex((item) => item.id === id);
-        if (index < 0) return false;
-        items[index] = sale;
-        await write(items);
-        return true;
-      }),
-    remove: (id) =>
-      run(async () => {
-        const items = await read();
-        const index = items.findIndex((item) => item.id === id);
-        if (index < 0) return false;
-        items.splice(index, 1);
-        await write(items);
-        return true;
-      }),
   };
 }
 

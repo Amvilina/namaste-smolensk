@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 
-const backend = spawn("node", ["--watch", "--experimental-strip-types", "src/server.ts"], {
+const backend = spawn("node", ["--watch", "--experimental-strip-types", "--experimental-sqlite", "src/server.ts"], {
   cwd: join(root, "backend"),
   stdio: "inherit",
   env: {

@@ -1,30 +1,14 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { join } from "node:path";
 
-export const CATEGORIES = ["products", "tech", "wage", "rent", "other"] as const;
-
-export type Category = (typeof CATEGORIES)[number];
-
-const NAMES: Record<Exclude<Category, "other">, string> = {
-  products: "Продукты",
-  tech: "Техническое",
-  wage: "Зарплата",
-  rent: "Аренда",
-};
-
-export type ExpenseLine = {
-  name: string;
-  amount: number;
-};
+export type ExpenseKind = "investment" | "cost";
 
 export type Expense = {
   id: string;
-  day: string;
-  category: Category;
-  label: string;
-  title: string;
-  lines: ExpenseLine[];
+  kind: ExpenseKind;
+  name: string;
+  amount: number;
+  day: string | null;
+  month: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -36,9 +20,9 @@ export type ExpenseStore = {
   remove(id: string): Promise<boolean>;
 };
 
-export function parseCategory(value: unknown): Category | null {
-  if (typeof value !== "string") return null;
-  return CATEGORIES.find((item) => item === value) ?? null;
+export function parseKind(value: unknown): ExpenseKind | null {
+  if (value === "investment" || value === "cost") return value;
+  return null;
 }
 
 export function parseMoney(value: unknown): number | null {
@@ -53,73 +37,18 @@ export function parseName(value: unknown): string | null {
   return text;
 }
 
-export function parseExpenseBody(body: {
-  category?: unknown;
-  label?: unknown;
-  title?: unknown;
-  lines?: unknown;
-} | null): Pick<Expense, "category" | "label" | "title" | "lines"> | null {
+export function parseExpenseBody(body: { kind?: unknown; name?: unknown; amount?: unknown } | null): Pick<Expense, "kind" | "name" | "amount"> | null {
   if (!body) return null;
-  const category = parseCategory(body.category);
-  const title = parseName(body.title);
-  if (!category || !title || !Array.isArray(body.lines) || body.lines.length === 0 || body.lines.length > 40) return null;
-  const label = category === "other" ? parseName(body.label) : NAMES[category];
-  if (!label) return null;
-  const lines: ExpenseLine[] = [];
-  for (const raw of body.lines) {
-    if (!raw || typeof raw !== "object") return null;
-    const row = raw as { name?: unknown; amount?: unknown };
-    const name = parseName(row.name);
-    const amount = parseMoney(row.amount);
-    if (!name || amount === null) return null;
-    lines.push({ name, amount });
-  }
-  return { category, label, title, lines };
+  const kind = parseKind(body.kind);
+  const name = parseName(body.name);
+  const amount = parseMoney(body.amount);
+  if (!kind || !name || amount === null) return null;
+  return { kind, name, amount };
 }
 
-function settleExpense(item: {
-  id?: string;
-  day?: string;
-  category?: unknown;
-  label?: unknown;
-  title?: unknown;
-  lines?: unknown;
-  createdAt?: string;
-  updatedAt?: string;
-}): Expense | null {
-  if (!item.id || !item.day) return null;
-  const parsed = parseExpenseBody(item);
-  if (parsed) {
-    return {
-      id: item.id,
-      day: item.day,
-      ...parsed,
-      createdAt: item.createdAt ?? "",
-      updatedAt: item.updatedAt ?? "",
-    };
-  }
-  if (!Array.isArray(item.lines) || item.lines.length === 0) return null;
-  const rows = item.lines as { category?: unknown; name?: unknown; amount?: unknown }[];
-  const category = parseCategory(rows[0]?.category) ?? "products";
-  const label = category === "other" ? parseName(rows[0]?.name) ?? "Другое" : NAMES[category];
-  const lines: ExpenseLine[] = [];
-  for (const row of rows) {
-    const name = parseName(row.name);
-    const amount = parseMoney(row.amount);
-    if (!name || amount === null) continue;
-    lines.push({ name, amount });
-  }
-  if (lines.length === 0) return null;
-  return {
-    id: item.id,
-    day: item.day,
-    category,
-    label,
-    title: label,
-    lines,
-    createdAt: item.createdAt ?? "",
-    updatedAt: item.updatedAt ?? "",
-  };
+export function expensePeriod(monthly: boolean, day: string): { day: string | null; month: string | null } {
+  if (monthly) return { day: null, month: day.slice(0, 7) };
+  return { day, month: null };
 }
 
 export function memoryExpenses(): ExpenseStore {
@@ -146,65 +75,11 @@ export function memoryExpenses(): ExpenseStore {
   };
 }
 
-export function fileExpenses(dir: string): ExpenseStore {
-  const file = join(dir, "expenses.json");
-  let chain = Promise.resolve();
-  const run = <T>(job: () => Promise<T>): Promise<T> => {
-    const next = chain.then(job, job);
-    chain = next.then(
-      () => undefined,
-      () => undefined,
-    );
-    return next;
-  };
-  const read = async (): Promise<Expense[]> => {
-    try {
-      const parsed = JSON.parse(await readFile(file, "utf8")) as unknown;
-      if (!Array.isArray(parsed)) return [];
-      return (parsed as Expense[]).flatMap((item) => {
-        const expense = settleExpense(item);
-        return expense ? [expense] : [];
-      });
-    } catch {
-      return [];
-    }
-  };
-  const write = async (items: Expense[]) => {
-    await mkdir(dir, { recursive: true });
-    const tmp = `${file}.tmp`;
-    await writeFile(tmp, JSON.stringify(items));
-    await rename(tmp, file);
-  };
-  return {
-    list: () => run(read),
-    add: (expense) =>
-      run(async () => {
-        const items = await read();
-        items.push(expense);
-        await write(items);
-      }),
-    replace: (id, expense) =>
-      run(async () => {
-        const items = await read();
-        const index = items.findIndex((item) => item.id === id);
-        if (index < 0) return false;
-        items[index] = expense;
-        await write(items);
-        return true;
-      }),
-    remove: (id) =>
-      run(async () => {
-        const items = await read();
-        const index = items.findIndex((item) => item.id === id);
-        if (index < 0) return false;
-        items.splice(index, 1);
-        await write(items);
-        return true;
-      }),
-  };
-}
-
-export function newExpense(day: string, body: Pick<Expense, "category" | "label" | "title" | "lines">, now: number): Expense {
+export function newExpense(
+  period: { day: string | null; month: string | null },
+  body: Pick<Expense, "kind" | "name" | "amount">,
+  now: number,
+): Expense {
   const stamp = new Date(now).toISOString();
-  return { id: randomUUID(), day, ...body, createdAt: stamp, updatedAt: stamp };
+  return { id: randomUUID(), ...period, ...body, createdAt: stamp, updatedAt: stamp };
 }

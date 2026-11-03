@@ -7,11 +7,11 @@ type Sale = {
 };
 type Expense = {
   id: string;
-  day: string;
-  category: "products" | "tech" | "wage" | "rent" | "other";
-  label: string;
-  title: string;
-  lines: { name: string; amount: number }[];
+  kind: "cost" | "investment";
+  name: string;
+  amount: number;
+  day: string | null;
+  month: string | null;
 };
 type Writeoff = { id: string; day: string; kind: "dish" | "product"; name: string; volume: string };
 
@@ -77,27 +77,48 @@ function salesMoney(list: Sale[]): number {
 }
 
 function costsMoney(list: Expense[]): number {
-  return list.reduce((total, item) => total + item.lines.reduce((sum, line) => sum + line.amount, 0), 0);
+  return list.reduce((total, item) => total + item.amount, 0);
+}
+
+function monthKey(): string {
+  return `${state.year}-${String(state.month).padStart(2, "0")}`;
 }
 
 function inMonth(day: string): boolean {
-  return day.startsWith(`${state.year}-${String(state.month).padStart(2, "0")}-`);
+  return day.startsWith(`${monthKey()}-`);
+}
+
+function expenseInMonth(item: Expense): boolean {
+  return item.month === monthKey() || (item.day?.startsWith(`${monthKey()}-`) ?? false);
+}
+
+function kindName(kind: Expense["kind"]): string {
+  return kind === "investment" ? "Инвестиции" : "Затраты";
 }
 
 function monthStats(): string {
   const saleSum = salesMoney(state.sales.filter((item) => inMonth(item.day)));
-  const costSum = costsMoney(state.costs.filter((item) => inMonth(item.day)));
+  const costSum = costsMoney(state.costs.filter((item) => expenseInMonth(item)));
+  const bills = state.costs.filter((item) => item.month === monthKey());
+  const billList = bills.length
+    ? `<ul class="month-bills">${bills
+        .map(
+          (item) =>
+            `<li><span class="mark">${esc(kindName(item.kind))}</span><span>${esc(item.name)}</span><b>${rub(item.amount)}</b></li>`,
+        )
+        .join("")}</ul>`
+    : "";
   return `<section class="month-stats">
     <p class="month-stat"><span>Продажи</span><b>${rub(saleSum)}</b></p>
     <p class="month-stat"><span>Затраты</span><b>${rub(costSum)}</b></p>
     <p class="month-stat"><span>Итог</span><b>${rub(saleSum - costSum)}</b></p>
-  </section>`;
+  </section>${billList}`;
 }
 
 function busyDays(): Set<string> {
   const set = new Set<string>();
   for (const item of state.sales) set.add(item.day);
-  for (const item of state.costs) set.add(item.day);
+  for (const item of state.costs) if (item.day) set.add(item.day);
   for (const item of state.offs) set.add(item.day);
   return set;
 }
@@ -155,20 +176,12 @@ function pickedView(): string {
   const costSum = costsMoney(costs);
   const saleItems = sales.map((item) => saleItem(item)).join("");
   const costItems = costs
-    .map((item) => {
-      const sum = item.lines.reduce((total, line) => total + line.amount, 0);
-      const lines =
-        item.category === "wage" || item.category === "rent"
-          ? ""
-          : `<ul class="entry-lines positions">${item.lines
-              .map((line) => `<li class="entry-row"><span class="entry-label">${esc(line.name)}</span><b class="entry-sum">${rub(line.amount)}</b></li>`)
-              .join("")}</ul>`;
-      return `<li class="day-item">
-        <div class="entry-top"><span class="mark">${esc(item.label)}</span><b class="entry-sum">${rub(sum)}</b></div>
-        <p class="entry-name">${esc(item.title)}</p>
-        ${lines}
-      </li>`;
-    })
+    .map(
+      (item) => `<li class="day-item">
+        <div class="entry-top"><span class="mark">${esc(kindName(item.kind))}</span><b class="entry-sum">${rub(item.amount)}</b></div>
+        <p class="entry-name">${esc(item.name)}</p>
+      </li>`,
+    )
     .join("");
   const offItems = offs
     .map(
