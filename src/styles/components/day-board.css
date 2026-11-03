@@ -10,10 +10,6 @@
   margin-bottom: 0.8rem;
 }
 
-.picked-title {
-  margin: 0;
-}
-
 .day-cols {
   display: grid;
   gap: 0.8rem;
@@ -38,27 +34,10 @@
   min-width: 0;
 }
 
-.day-col-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.day-card-title,
-.day-total {
+.day-card-title {
   margin: 0;
   font-size: 1.35rem;
   line-height: 1.1;
-}
-
-.day-total {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.day-total.is-empty {
-  visibility: hidden;
 }
 
 .day-list {

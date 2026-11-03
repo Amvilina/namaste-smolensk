@@ -31,6 +31,7 @@ const state: {
   month: number;
   picked: string;
   today: string;
+  billsOpen: boolean;
 } = {
   sales: [],
   costs: [],
@@ -39,6 +40,7 @@ const state: {
   month: 10,
   picked: "",
   today: "",
+  billsOpen: false,
 };
 
 function esc(value: string): string {
@@ -72,8 +74,18 @@ function monthTitle(year: number, month: number): string {
   );
 }
 
-function salesMoney(list: Sale[]): number {
-  return list.reduce((total, sale) => total + sale.lines.reduce((sum, line) => sum + line.price * line.qty, 0), 0);
+function saleSum(sale: Sale): number {
+  return sale.lines.reduce((total, line) => total + line.price * line.qty, 0);
+}
+
+function salesSplit(list: Sale[]): { cash: number; card: number } {
+  const split = { cash: 0, card: 0 };
+  for (const sale of list) {
+    const sum = saleSum(sale);
+    if (sale.pay === "card") split.card += sum;
+    else split.cash += sum;
+  }
+  return split;
 }
 
 function costsMoney(list: Expense[]): number {
@@ -96,23 +108,52 @@ function kindName(kind: Expense["kind"]): string {
   return kind === "investment" ? "Инвестиции" : "Затраты";
 }
 
+function ledger(sales: { cash: number; card: number }, spent: number, invested: number): string {
+  const total = sales.cash + sales.card;
+  const row = (label: string, value: number, extra = "") =>
+    `<div class="stat${extra}"><dt>${label}</dt><dd>${rub(value)}</dd></div>`;
+  return `<dl class="stats">
+    ${row("Нал", sales.cash)}
+    ${row("Безнал", sales.card)}
+    ${row("Общие", total)}
+    ${row("Затраты", spent)}
+    ${row("Инвестиции", invested)}
+    ${row("Прибыль", total - spent, " is-line")}
+    ${row("Прибыль с инвестициями", total - spent - invested)}
+  </dl>`;
+}
+
 function monthStats(): string {
-  const saleSum = salesMoney(state.sales.filter((item) => inMonth(item.day)));
-  const costSum = costsMoney(state.costs.filter((item) => expenseInMonth(item)));
-  const bills = state.costs.filter((item) => item.month === monthKey());
+  const monthItems = state.costs.filter((item) => expenseInMonth(item));
+  const sales = salesSplit(state.sales.filter((item) => inMonth(item.day)));
+  const spent = costsMoney(monthItems.filter((item) => item.kind === "cost"));
+  const invested = costsMoney(monthItems.filter((item) => item.kind === "investment"));
+  const bills = monthItems.filter((item) => item.month === monthKey());
+  const open = state.billsOpen;
   const billList = bills.length
-    ? `<ul class="month-bills">${bills
-        .map(
-          (item) =>
-            `<li><span class="mark">${esc(kindName(item.kind))}</span><span>${esc(item.name)}</span><b>${rub(item.amount)}</b></li>`,
-        )
-        .join("")}</ul>`
+    ? `<div class="bills">
+        <button type="button" class="bills-toggle${open ? " is-on" : ""}" data-bills aria-expanded="${open ? "true" : "false"}">Месячные затраты${CHEVRON}</button>
+        <ul class="month-bills"${open ? "" : " hidden"}>${bills
+          .map((item) => `<li><span>${esc(item.name)}</span><b>${rub(item.amount)}</b></li>`)
+          .join("")}</ul>
+      </div>`
     : "";
-  return `<section class="month-stats">
-    <p class="month-stat"><span>Продажи</span><b>${rub(saleSum)}</b></p>
-    <p class="month-stat"><span>Затраты</span><b>${rub(costSum)}</b></p>
-    <p class="month-stat"><span>Итог</span><b>${rub(saleSum - costSum)}</b></p>
-  </section>${billList}`;
+  return `<div class="board-month">${ledger(sales, spent, invested)}${billList}</div>`;
+}
+
+function dayStats(): string {
+  if (!state.picked) return "";
+  const sales = state.sales.filter((item) => item.day === state.picked);
+  const costs = state.costs.filter((item) => item.day === state.picked);
+  const spent = costsMoney(costs.filter((item) => item.kind === "cost"));
+  const invested = costsMoney(costs.filter((item) => item.kind === "investment"));
+  return `<div class="board-day">
+    <div class="picked-bar">
+      <h2 class="board-day-title">${esc(dayTitle(state.picked))}</h2>
+      <a class="leave" href="/worker?day=${esc(state.picked)}">Редактировать</a>
+    </div>
+    ${ledger(salesSplit(sales), spent, invested)}
+  </div>`;
 }
 
 function busyDays(): Set<string> {
@@ -124,7 +165,7 @@ function busyDays(): Set<string> {
 }
 
 function saleItem(sale: Sale): string {
-  const sum = sale.lines.reduce((total, line) => total + line.price * line.qty, 0);
+  const sum = saleSum(sale);
   const lines = sale.lines
     .map((line) => {
       const extra = line.extras?.length ? `<em>${line.extras.map((item) => esc(item.name)).join(", ")}</em>` : "";
@@ -172,8 +213,6 @@ function pickedView(): string {
   const sales = state.sales.filter((item) => item.day === state.picked);
   const costs = state.costs.filter((item) => item.day === state.picked);
   const offs = state.offs.filter((item) => item.day === state.picked);
-  const saleSum = salesMoney(sales);
-  const costSum = costsMoney(costs);
   const saleItems = sales.map((item) => saleItem(item)).join("");
   const costItems = costs
     .map(
@@ -192,14 +231,10 @@ function pickedView(): string {
     )
     .join("");
   return `<section class="picked">
-    <div class="picked-bar">
-      <h2 class="picked-title">${esc(dayTitle(state.picked))}</h2>
-      <a class="leave" href="/worker?day=${esc(state.picked)}">Редактировать</a>
-    </div>
     <div class="day-cols">
-      <div class="day-col"><div class="day-col-head"><h3 class="day-card-title">Продажи</h3><b class="day-total">${rub(saleSum)}</b></div><section class="day-card"><ul class="day-list">${saleItems}</ul></section></div>
-      <div class="day-col"><div class="day-col-head"><h3 class="day-card-title">Затраты</h3><b class="day-total">${rub(costSum)}</b></div><section class="day-card is-alt"><ul class="day-list">${costItems}</ul></section></div>
-      <div class="day-col"><div class="day-col-head"><h3 class="day-card-title">Списания</h3><b class="day-total is-empty" aria-hidden="true">&nbsp;</b></div><section class="day-card"><ul class="day-list">${offItems}</ul></section></div>
+      <div class="day-col"><h3 class="day-card-title">Продажи</h3><section class="day-card"><ul class="day-list">${saleItems}</ul></section></div>
+      <div class="day-col"><h3 class="day-card-title">Затраты</h3><section class="day-card is-alt"><ul class="day-list">${costItems}</ul></section></div>
+      <div class="day-col"><h3 class="day-card-title">Списания</h3><section class="day-card"><ul class="day-list">${offItems}</ul></section></div>
     </div>
   </section>`;
 }
@@ -216,7 +251,10 @@ function paint(): void {
       <b>Календарь</b>
       <form method="post" action="/logout"><button class="leave" type="submit">Выйти</button></form>
     </header>
-    <main class="desk">${monthStats()}${calendar()}${pickedView()}</main>
+    <main class="desk">
+      <div class="board">${calendar()}<div class="board-side">${monthStats()}${dayStats()}</div></div>
+      ${pickedView()}
+    </main>
   `;
 }
 
@@ -227,6 +265,11 @@ root.addEventListener("click", (event) => {
   if (day instanceof HTMLButtonElement && !day.disabled && day.dataset.day) {
     state.picked = day.dataset.day;
     history.replaceState(null, "", `/admin?day=${state.picked}`);
+    paint();
+    return;
+  }
+  if (target.closest("[data-bills]")) {
+    state.billsOpen = !state.billsOpen;
     paint();
     return;
   }
