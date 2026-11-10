@@ -422,6 +422,7 @@ export function mountCart() {
       <span>Телефон</span>
       <input class="input" type="tel" name="phone" data-phone-ru inputmode="tel" autocomplete="tel" maxlength="18" value="+7" required>
     </label>
+    <p class="order-legal">Нажимая кнопку, вы соглашаетесь на <a href="/legal/consent">обработку персональных данных</a> и с <a href="/legal/privacy">политикой конфиденциальности</a>.</p>
     <button type="submit">Заказать</button>
     <p class="order-error" hidden>Не отправилось.</p>
   `;

@@ -7,6 +7,8 @@ function workerPage(): Plugin {
       server.middlewares.use((req, _res, next) => {
         if (req.url === "/worker" || req.url === "/worker/") req.url = "/worker.html";
         if (req.url === "/admin" || req.url === "/admin/") req.url = "/admin.html";
+        if (req.url === "/legal/privacy" || req.url === "/legal/privacy/") req.url = "/legal/privacy.html";
+        if (req.url === "/legal/consent" || req.url === "/legal/consent/") req.url = "/legal/consent.html";
         next();
       });
     },
@@ -22,6 +24,8 @@ export default defineConfig({
         main: "index.html",
         worker: "worker.html",
         admin: "admin.html",
+        privacy: "legal/privacy.html",
+        consent: "legal/consent.html",
       },
     },
   },

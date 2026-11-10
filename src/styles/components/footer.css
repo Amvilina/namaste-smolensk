@@ -40,6 +40,19 @@
   line-height: 1.45;
 }
 
+.legal-docs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin-top: 0.35rem;
+}
+
+.legal a {
+  color: inherit;
+  text-decoration-color: var(--color-accent);
+  text-underline-offset: 0.18em;
+}
+
 @container (min-width: 40rem) {
   .footer-grid {
     grid-template-columns: 1fr auto;
