@@ -1,0 +1,11 @@
+name = "namaste-max"
+main = "src/index.js"
+compatibility_date = "2026-11-10"
+account_id = "ee7eecdc617349c774ae142eb55e0015"
+workers_dev = true
+
+# Лимит заказов с одного IP. Один раз, из этого каталога:
+#   npx wrangler kv namespace create BOT_KV
+# [[kv_namespaces]]
+# binding = "BOT_KV"
+# id = ""

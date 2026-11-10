@@ -7,7 +7,8 @@
     "dev": "node scripts/dev.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "test": "npm test --prefix backend"
+    "test": "npm test --prefix backend",
+    "deploy:cf": "bash workers/max-bot/deploy.sh"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
