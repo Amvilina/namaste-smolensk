@@ -133,7 +133,7 @@ function setCount(key: string, next: number) {
   paintFab();
   saveCounts();
   if (dialog.open) {
-    if (total() === 0) dialog.close();
+    if (total() === 0 && !dialog.classList.contains("is-sending")) dialog.close();
     else paintLines();
   }
 }
@@ -394,7 +394,9 @@ export function mountCart() {
   close.setAttribute("aria-label", "Закрыть");
   close.innerHTML =
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
-  close.addEventListener("click", () => dialog.close());
+  close.addEventListener("click", () => {
+    if (!dialog.classList.contains("is-sending")) dialog.close();
+  });
   head.append(title, close);
 
   lines.className = "cart-lines";
@@ -449,6 +451,12 @@ export function mountCart() {
   let sending = false;
   let inflight: AbortController | null = null;
 
+  const setBusy = (on: boolean) => {
+    sending = on;
+    dialog.classList.toggle("is-sending", on);
+    close.disabled = on;
+  };
+
   const paintHandoff = () => {
     const pickup = handoff.find((button) => button.dataset.handoff === "pickup");
     const isPickup = pickup?.getAttribute("aria-pressed") === "true";
@@ -488,14 +496,14 @@ export function mountCart() {
     inflight?.abort();
     const controller = new AbortController();
     inflight = controller;
-    sending = true;
+    setBusy(true);
     error.hidden = true;
     submit.disabled = true;
     submit.textContent = "Загрузка...";
     submit.setAttribute("aria-busy", "true");
     const ok = await sendOrder(payload, controller.signal);
     if (controller.signal.aborted) return;
-    sending = false;
+    setBusy(false);
     inflight = null;
     submit.removeAttribute("aria-busy");
     if (!ok) {
@@ -509,11 +517,13 @@ export function mountCart() {
     dialog.classList.add("is-done");
   });
 
+  dialog.addEventListener("cancel", (event) => {
+    if (dialog.classList.contains("is-sending")) event.preventDefault();
+  });
+
   dialog.addEventListener("close", () => {
     unlockScroll();
-    inflight?.abort();
-    inflight = null;
-    sending = false;
+    setBusy(false);
     body.hidden = false;
     success.hidden = true;
     error.hidden = true;
@@ -535,7 +545,7 @@ export function mountCart() {
   dialog.append(head, body, success);
   bindAllPhoneInputs(dialog);
   dialog.addEventListener("click", (event) => {
-    if (event.target === dialog) dialog.close();
+    if (event.target === dialog && !dialog.classList.contains("is-sending")) dialog.close();
   });
 
   for (const [key, line] of [...orders]) {

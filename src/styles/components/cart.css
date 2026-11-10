@@ -61,6 +61,12 @@
   background: oklch(0.34 0.04 70);
 }
 
+.cart-close:disabled,
+.cart-close:disabled:hover {
+  background: oklch(0.24 0.03 70);
+  cursor: default;
+}
+
 .stepper {
   display: inline-flex;
   align-items: center;
