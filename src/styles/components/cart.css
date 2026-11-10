@@ -279,6 +279,16 @@
   background: oklch(0.34 0.04 70);
 }
 
+.order-error {
+  margin: 0;
+  color: oklch(0.55 0.18 25);
+  font-size: 0.92rem;
+}
+
+.order-error[hidden] {
+  display: none;
+}
+
 .cart-success {
   display: grid;
   grid-template-columns: 8.5rem minmax(0, 1fr);

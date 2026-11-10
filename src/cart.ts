@@ -36,6 +36,7 @@ type Stepper = {
 };
 
 const STORAGE = "namaste-cart";
+const ORDER_URL = "https://namaste-max.diatsht.workers.dev/";
 const catalog = new Map<string, Dish>();
 const orders = new Map<string, Line>();
 const rows = new Map<string, Stepper>();
@@ -155,6 +156,44 @@ function paintFab() {
   fab.hidden = count === 0;
   badge.textContent = String(count);
   fab.setAttribute("aria-label", `Корзина, ${count}`);
+}
+
+function orderPayload(phone: string, handoff: HTMLButtonElement[], address: string) {
+  const mode = handoff.find((button) => button.getAttribute("aria-pressed") === "true")?.dataset.handoff;
+  if (mode !== "pickup" && mode !== "delivery") return null;
+  const lines: { name: string; qty: number; extras: string[] }[] = [];
+  for (const line of orders.values()) {
+    const dish = catalog.get(line.id);
+    const qty = Math.floor(line.count);
+    if (!dish || qty < 1) continue;
+    const extras = line.extras
+      .map((id) => dish.extras?.find((extra) => extra.id === id)?.name)
+      .filter((name): name is string => Boolean(name));
+    lines.push({ name: dish.name, qty, extras });
+  }
+  if (lines.length === 0) return null;
+  return {
+    phone,
+    handoff: mode,
+    address: mode === "delivery" ? address.trim() : "",
+    lines,
+  };
+}
+
+async function sendOrder(payload: NonNullable<ReturnType<typeof orderPayload>>, signal: AbortSignal) {
+  try {
+    const response = await fetch(ORDER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal,
+    });
+    if (!response.ok) return false;
+    const data = (await response.json()) as { ok?: boolean };
+    return data.ok === true;
+  } catch {
+    return false;
+  }
 }
 
 function emptyCart() {
@@ -382,6 +421,7 @@ export function mountCart() {
       <input class="input" type="tel" name="phone" data-phone-ru inputmode="tel" autocomplete="tel" maxlength="18" value="+7" required>
     </label>
     <button type="submit">Заказать</button>
+    <p class="order-error" hidden>Не отправилось.</p>
   `;
 
   const success = document.createElement("div");
@@ -398,13 +438,22 @@ export function mountCart() {
 
   const phone = form.querySelector<HTMLInputElement>("[data-phone-ru]");
   const submit = form.querySelector<HTMLButtonElement>("button[type=submit]");
+  const error = form.querySelector<HTMLParagraphElement>(".order-error");
   const handoff = [...form.querySelectorAll<HTMLButtonElement>("[data-handoff]")];
   const address = form.querySelector<HTMLLabelElement>(".field-address");
-  if (!phone || !submit || handoff.length !== 2 || !address) throw new Error("Order form is missing.");
+  const addressInput = form.querySelector<HTMLTextAreaElement>("[name=address]");
+  if (!phone || !submit || !error || handoff.length !== 2 || !address || !addressInput) {
+    throw new Error("Order form is missing.");
+  }
+
+  let sending = false;
+  let inflight: AbortController | null = null;
 
   const paintHandoff = () => {
     const pickup = handoff.find((button) => button.dataset.handoff === "pickup");
-    address.hidden = pickup?.getAttribute("aria-pressed") === "true";
+    const isPickup = pickup?.getAttribute("aria-pressed") === "true";
+    address.hidden = isPickup;
+    addressInput.required = !isPickup;
   };
   for (const button of handoff) {
     button.addEventListener("click", () => {
@@ -414,20 +463,44 @@ export function mountCart() {
   }
 
   const paintOrder = () => {
+    if (sending) return;
     const ready = isPhoneRuComplete(phone.value);
     submit.disabled = !ready;
     submit.classList.toggle("is-ready", ready);
+    submit.textContent = "Заказать";
+    submit.removeAttribute("aria-busy");
   };
   phone.addEventListener("input", paintOrder);
   phone.addEventListener("blur", paintOrder);
   paintOrder();
 
-  form.addEventListener("submit", (event) => {
+  form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (sending) return;
     setPhoneValidity(phone);
     if (!form.reportValidity()) {
       const invalid = form.querySelector<HTMLInputElement>(":invalid");
       invalid?.focus();
+      return;
+    }
+    const payload = orderPayload(phone.value, handoff, addressInput.value);
+    if (!payload) return;
+    inflight?.abort();
+    const controller = new AbortController();
+    inflight = controller;
+    sending = true;
+    error.hidden = true;
+    submit.disabled = true;
+    submit.textContent = "Загрузка...";
+    submit.setAttribute("aria-busy", "true");
+    const ok = await sendOrder(payload, controller.signal);
+    if (controller.signal.aborted) return;
+    sending = false;
+    inflight = null;
+    submit.removeAttribute("aria-busy");
+    if (!ok) {
+      error.hidden = false;
+      paintOrder();
       return;
     }
     emptyCart();
@@ -438,8 +511,12 @@ export function mountCart() {
 
   dialog.addEventListener("close", () => {
     unlockScroll();
+    inflight?.abort();
+    inflight = null;
+    sending = false;
     body.hidden = false;
     success.hidden = true;
+    error.hidden = true;
     dialog.classList.remove("is-done");
     form.reset();
     phone.value = "+7";
