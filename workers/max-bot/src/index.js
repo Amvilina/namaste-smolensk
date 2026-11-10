@@ -20,7 +20,7 @@ const ALLOWED_ORIGINS = [
 ];
 
 const MAX_ORDERS = 5;
-const ADMINS = [274477448];
+const ADMINS = [91599112];
 
 export default {
   async fetch(request, env) {
@@ -144,5 +144,21 @@ async function handleWebhook(request, env) {
     const secret = request.headers.get("X-Max-Bot-Api-Secret") || "";
     if (secret !== env.MAX_WEBHOOK_SECRET) return new Response("forbidden", { status: 403 });
   }
-  return new Response("ok");
+
+  let update;
+  try {
+    update = await request.json();
+  } catch {
+    return new Response("ok");
+  }
+
+  if (update.update_type !== "message_created") return new Response("ok");
+  const sender = update.message?.sender;
+  const userId = sender?.user_id;
+  const command = String(update.message?.body?.text || "").trim().split(/\s+/)[0]?.split("@")[0].toLowerCase();
+  if (!userId || sender.is_bot || command !== "/myid") return new Response("ok");
+  if (!env.MAX_BOT_TOKEN) return new Response("misconfigured", { status: 500 });
+
+  const sent = await sendMax(env, userId, String(userId));
+  return new Response(sent.ok ? "ok" : "failed", { status: sent.ok ? 200 : 502 });
 }
