@@ -20,7 +20,7 @@ const ALLOWED_ORIGINS = [
 ];
 
 const MAX_ORDERS = 5;
-const ADMINS = [91599112];
+const ADMINS = [91599112, 381612318];
 
 export default {
   async fetch(request, env) {
