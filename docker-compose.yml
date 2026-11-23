@@ -9,6 +9,14 @@ services:
       MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:-}
       MAX_WEBHOOK_SECRET: ${MAX_WEBHOOK_SECRET:-}
       MAX_WEBHOOK_URL: https://namaste-smolensk.ru/api/max/webhook
+      SES_MAX_BOT_TOKEN: ${SES_MAX_BOT_TOKEN:-}
+      SES_MAX_WEBHOOK_SECRET: ${SES_MAX_WEBHOOK_SECRET:-}
+      SES_MAX_ADMINS: ${SES_MAX_ADMINS:-}
+      SES_MAX_WEBHOOK_URL: https://namaste-smolensk.ru/api/lead/ses/webhook
+      PORTFOLIO_MAX_BOT_TOKEN: ${PORTFOLIO_MAX_BOT_TOKEN:-}
+      PORTFOLIO_MAX_WEBHOOK_SECRET: ${PORTFOLIO_MAX_WEBHOOK_SECRET:-}
+      PORTFOLIO_MAX_ADMINS: ${PORTFOLIO_MAX_ADMINS:-}
+      PORTFOLIO_MAX_WEBHOOK_URL: https://namaste-smolensk.ru/api/lead/portfolio/webhook
     volumes:
       - namaste-data:/data
     expose:

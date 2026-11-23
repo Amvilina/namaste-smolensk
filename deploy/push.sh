@@ -14,18 +14,35 @@ echo "2/3 git pull в $APP"
 "${SSH[@]}" "cd '$APP' && git status -sb && git pull"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-if [[ -f "$ROOT/.env.cloudflare" ]]; then
-  set -a
-  # shellcheck disable=SC1091
-  source "$ROOT/.env.cloudflare"
-  set +a
+for env_file in "$ROOT/.env.cloudflare" "$ROOT/../ValeraSite/.env.cloudflare" "$ROOT/../portfolio-site/.env.cloudflare"; do
+  if [[ -f "$env_file" ]]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "$env_file"
+    set +a
+  fi
+done
+ENV_TMP="$(mktemp)"
+add_env() {
+  local key="$1"
+  local value="${!key:-}"
+  if [[ -n "$value" ]]; then
+    printf '%s=%s\n' "$key" "$value" >> "$ENV_TMP"
+  fi
+}
+add_env MAX_BOT_TOKEN
+add_env MAX_WEBHOOK_SECRET
+add_env SES_MAX_BOT_TOKEN
+add_env SES_MAX_WEBHOOK_SECRET
+add_env SES_MAX_ADMINS
+add_env PORTFOLIO_MAX_BOT_TOKEN
+add_env PORTFOLIO_MAX_WEBHOOK_SECRET
+add_env PORTFOLIO_MAX_ADMINS
+if [[ -s "$ENV_TMP" ]]; then
+  "${SSH[@]}" "umask 077; cat > '$APP/.env'" < "$ENV_TMP"
 fi
-if [[ -n "${MAX_BOT_TOKEN:-}" && -n "${MAX_WEBHOOK_SECRET:-}" ]]; then
-  {
-    printf 'MAX_BOT_TOKEN=%s\n' "$MAX_BOT_TOKEN"
-    printf 'MAX_WEBHOOK_SECRET=%s\n' "$MAX_WEBHOOK_SECRET"
-  } | "${SSH[@]}" "umask 077; cat > '$APP/.env'"
-else
+rm -f "$ENV_TMP"
+if [[ -z "${MAX_BOT_TOKEN:-}" || -z "${MAX_WEBHOOK_SECRET:-}" ]]; then
   echo "В .env.cloudflare нет MAX_BOT_TOKEN или MAX_WEBHOOK_SECRET — заказ на сервере не отправится" >&2
 fi
 

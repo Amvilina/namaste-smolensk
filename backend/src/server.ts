@@ -14,12 +14,16 @@ const server = createServer(
   }),
 );
 
+function subscribe(tokenKey: string, secretKey: string, urlKey: string): void {
+  const token = process.env[tokenKey] ?? "";
+  const hookSecret = process.env[secretKey] ?? "";
+  const hookUrl = process.env[urlKey] ?? "";
+  if (token && hookSecret && hookUrl) void subscribeMax(token, hookSecret, hookUrl);
+}
+
 server.listen(port, () => {
   console.log(`admin listening on ${port}`);
-  const token = process.env.MAX_BOT_TOKEN ?? "";
-  const hookSecret = process.env.MAX_WEBHOOK_SECRET ?? "";
-  const hookUrl = process.env.MAX_WEBHOOK_URL ?? "";
-  if (token && hookSecret && hookUrl) {
-    void subscribeMax(token, hookSecret, hookUrl);
-  }
+  subscribe("MAX_BOT_TOKEN", "MAX_WEBHOOK_SECRET", "MAX_WEBHOOK_URL");
+  subscribe("SES_MAX_BOT_TOKEN", "SES_MAX_WEBHOOK_SECRET", "SES_MAX_WEBHOOK_URL");
+  subscribe("PORTFOLIO_MAX_BOT_TOKEN", "PORTFOLIO_MAX_WEBHOOK_SECRET", "PORTFOLIO_MAX_WEBHOOK_URL");
 });

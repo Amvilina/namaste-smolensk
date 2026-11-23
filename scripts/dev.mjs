@@ -10,7 +10,7 @@ function maxEnv() {
     const text = readFileSync(join(root, ".env.cloudflare"), "utf8");
     const out = {};
     for (const line of text.split("\n")) {
-      const match = line.match(/^(MAX_BOT_TOKEN|MAX_WEBHOOK_SECRET)=(.*)$/);
+      const match = line.match(/^(MAX_BOT_TOKEN|MAX_WEBHOOK_SECRET|SES_MAX_BOT_TOKEN|SES_MAX_WEBHOOK_SECRET|SES_MAX_ADMINS|PORTFOLIO_MAX_BOT_TOKEN|PORTFOLIO_MAX_WEBHOOK_SECRET|PORTFOLIO_MAX_ADMINS)=(.*)$/);
       if (match) out[match[1]] = match[2];
     }
     return out;
