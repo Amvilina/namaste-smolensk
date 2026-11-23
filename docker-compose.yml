@@ -6,6 +6,9 @@ services:
     environment:
       PORT: "8080"
       DATA_DIR: /data
+      MAX_BOT_TOKEN: ${MAX_BOT_TOKEN:-}
+      MAX_WEBHOOK_SECRET: ${MAX_WEBHOOK_SECRET:-}
+      MAX_WEBHOOK_URL: https://namaste-smolensk.ru/api/max/webhook
     volumes:
       - namaste-data:/data
     expose:

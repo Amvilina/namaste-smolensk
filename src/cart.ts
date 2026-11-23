@@ -36,7 +36,7 @@ type Stepper = {
 };
 
 const STORAGE = "namaste-cart";
-const ORDER_URL = "https://namaste-max.diatsht.workers.dev/";
+const ORDER_URL = "/api/order";
 const catalog = new Map<string, Dish>();
 const orders = new Map<string, Line>();
 const rows = new Map<string, Stepper>();

@@ -6,6 +6,7 @@ import { handleExpenses } from "./expenses-api.ts";
 import { ledgerStores } from "./ledger.ts";
 import type { WriteoffStore } from "./writeoffs.ts";
 import { handleWriteoffs } from "./writeoffs-api.ts";
+import { createOrders, type OrderDeps } from "./orders.ts";
 import { loginPage, emptyPage } from "./pages.ts";
 import { handleApi } from "./sales-api.ts";
 import type { SalesStore } from "./sales.ts";
@@ -26,6 +27,7 @@ export type AppOptions = {
   sales?: SalesStore;
   expenses?: ExpenseStore;
   writeoffs?: WriteoffStore;
+  orders?: OrderDeps;
 };
 
 type Failure = { count: number; reset: number };
@@ -100,6 +102,7 @@ export function createApp(options: AppOptions) {
   const expenses = options.expenses ?? ledger!.expenses;
   const writeoffs = options.writeoffs ?? ledger!.writeoffs;
   const failures = new Map<string, Failure>();
+  const orders = createOrders({ ...options.orders, now });
 
   function openSession(req: IncomingMessage): { user: StoredUser; session: Session } | null {
     const token = cookiesOf(req).get(COOKIE);
@@ -141,6 +144,8 @@ export function createApp(options: AppOptions) {
     const secure = req.headers["x-forwarded-proto"] === "https";
     const renew = (session: Session) => renewedCookie(session, secure);
     const cookie = (value: string, maxAge: number) => sessionCookie(value, maxAge, secure);
+
+    if (await orders(req, res, url, clientIp(req))) return;
 
     if (
       await handleWriteoffs({
