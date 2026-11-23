@@ -1,9 +1,14 @@
+import { createHmac } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { sendMax } from "./orders.ts";
 
+const MAX_API = "https://platform-api.max.ru";
 const WINDOW_MS = 60_000;
 const MAX_LEADS = 5;
 const MIN_DWELL_MS = 10_000;
+const METRIKA_COUNTER = 112716152;
+const METRIKA_GOAL_RE = /^[a-z0-9_-]{1,40}$/i;
+const GOAL_PATH = "/api/lead/portfolio/goal";
+const PUBLIC_ORIGIN = "https://namaste-smolensk.ru";
 
 const SES_ORIGINS = [
   "https://гос-сэс.рф",
@@ -29,11 +34,13 @@ const PORTFOLIO_ORIGINS = [
 
 type Hit = { n: number; reset: number };
 
+type MetrikaMark = { goal: string; pageUrl: string };
+
 export type LeadBotDeps = {
   token?: string;
   webhookSecret?: string;
   admins?: number[];
-  send?: (userId: number, text: string) => Promise<boolean>;
+  send?: (userId: number, text: string, link?: string) => Promise<boolean>;
 };
 
 export type LeadDeps = {
@@ -221,16 +228,86 @@ function portfolioText(name: string, phone: string, source: string, message: str
   return lines.join("\n").slice(0, 4000);
 }
 
+async function sendLead(token: string, userId: number, text: string, link?: string): Promise<boolean> {
+  const endpoint = new URL("/messages", MAX_API);
+  endpoint.searchParams.set("user_id", String(userId));
+  const body: { text: string; attachments?: unknown[] } = { text };
+  if (link) {
+    body.attachments = [
+      {
+        type: "inline_keyboard",
+        payload: { buttons: [[{ type: "link", text: "Отправить в Метрику", url: link }]] },
+      },
+    ];
+  }
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { Authorization: token, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  return response.ok;
+}
+
+export function subscribeLeads(): void {
+  const bots = [
+    [process.env.SES_MAX_BOT_TOKEN, process.env.SES_MAX_WEBHOOK_SECRET, process.env.SES_MAX_WEBHOOK_URL],
+    [process.env.PORTFOLIO_MAX_BOT_TOKEN, process.env.PORTFOLIO_MAX_WEBHOOK_SECRET, process.env.PORTFOLIO_MAX_WEBHOOK_URL],
+  ];
+  for (const [token, secret, hook] of bots) {
+    if (!token || !secret || !hook) continue;
+    void fetch(new URL("/subscriptions", MAX_API), {
+      method: "POST",
+      headers: { Authorization: token, "Content-Type": "application/json" },
+      body: JSON.stringify({ url: hook, update_types: ["message_created"], secret }),
+    }).catch((error: unknown) => {
+      console.error("lead subscribe", error);
+    });
+  }
+}
+
+function markOf(raw: unknown): MetrikaMark | null {
+  if (!raw || typeof raw !== "object") return null;
+  const data = raw as Record<string, unknown>;
+  const goal = String(data.goal ?? "").trim();
+  if (!METRIKA_GOAL_RE.test(goal)) return null;
+  return { goal, pageUrl: String(data.pageUrl ?? "").trim().slice(0, 500) };
+}
+
+function goalSign(secret: string, goal: string, page: string): string {
+  return createHmac("sha256", secret).update(`${goal}\n${page}`).digest("hex").slice(0, 20);
+}
+
+function goalLink(secret: string, mark: MetrikaMark): string {
+  const q = new URLSearchParams({ g: mark.goal, s: goalSign(secret, mark.goal, mark.pageUrl) });
+  if (mark.pageUrl) q.set("p", mark.pageUrl);
+  return `${PUBLIC_ORIGIN}${GOAL_PATH}?${q}`;
+}
+
+function goalPage(goal: string, page: string): string {
+  const url = JSON.stringify(page || "https://gcss-portfolio.ru/");
+  const name = JSON.stringify(goal);
+  return `<!doctype html>
+<meta charset="utf-8">
+<title>Метрика</title>
+<p>Отправлено в Метрику</p>
+<script>
+(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return}}k=e.createElement(t);a=e.getElementsByTagName(t)[0];k.async=1;k.src=r;a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=${METRIKA_COUNTER}','ym');
+ym(${METRIKA_COUNTER},'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:'dataLayer',referrer:document.referrer,url:${url},accurateTrackBounce:true,trackLinks:true});
+ym(${METRIKA_COUNTER},'reachGoal',${name});
+</script>`;
+}
+
 async function fanout(
   res: ServerResponse,
   corsHeaders: Record<string, string>,
   admins: number[],
-  send: (userId: number, text: string) => Promise<boolean>,
+  send: (userId: number, text: string, link?: string) => Promise<boolean>,
   text: string,
+  link?: string,
 ): Promise<void> {
   for (const userId of admins) {
     try {
-      if (!(await send(userId, text))) {
+      if (!(await send(userId, text, link))) {
         reply(res, 502, { ok: false, error: "Max failed", code: "max_failed" }, corsHeaders);
         return;
       }
@@ -272,8 +349,9 @@ export function createLeads(deps: LeadDeps = {}) {
   const portfolioSecret = deps.portfolio?.webhookSecret ?? process.env.PORTFOLIO_MAX_WEBHOOK_SECRET ?? "";
   const sesAdmins = ids(process.env.SES_MAX_ADMINS, deps.ses?.admins);
   const portfolioAdmins = ids(process.env.PORTFOLIO_MAX_ADMINS, deps.portfolio?.admins);
-  const sendSes = deps.ses?.send ?? ((userId: number, text: string) => sendMax(sesToken, userId, text));
-  const sendPortfolio = deps.portfolio?.send ?? ((userId: number, text: string) => sendMax(portfolioToken, userId, text));
+  const sendSes = deps.ses?.send ?? ((userId: number, text: string) => sendLead(sesToken, userId, text));
+  const sendPortfolio =
+    deps.portfolio?.send ?? ((userId: number, text: string, link?: string) => sendLead(portfolioToken, userId, text, link));
 
   return async function handleLeads(
     req: IncomingMessage,
@@ -286,6 +364,19 @@ export function createLeads(deps: LeadDeps = {}) {
     const portfolio = url.pathname === "/api/lead/portfolio";
     const sesHook = url.pathname === "/api/lead/ses/webhook";
     const portfolioHook = url.pathname === "/api/lead/portfolio/webhook";
+    if (method === "GET" && url.pathname === GOAL_PATH) {
+      const goal = url.searchParams.get("g") ?? "";
+      const page = url.searchParams.get("p") ?? "";
+      const sig = url.searchParams.get("s") ?? "";
+      if (!portfolioSecret || !METRIKA_GOAL_RE.test(goal) || sig !== goalSign(portfolioSecret, goal, page)) {
+        plain(res, 404, "not found");
+        return true;
+      }
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+      res.end(goalPage(goal, page));
+      return true;
+    }
+
     if (!ses && !portfolio && !sesHook && !portfolioHook) return false;
 
     if (sesHook || portfolioHook) {
@@ -378,7 +469,9 @@ export function createLeads(deps: LeadDeps = {}) {
       reply(res, 429, { ok: false, error: "Too many requests", code: "rate_limited" }, headers);
       return true;
     }
-    await fanout(res, headers, admins, send, portfolioText(name, phone, source, message));
+    const mark = markOf(raw.metrika);
+    const link = mark && portfolioSecret ? goalLink(portfolioSecret, mark) : undefined;
+    await fanout(res, headers, admins, send, portfolioText(name, phone, source, message), link);
     return true;
   };
 }

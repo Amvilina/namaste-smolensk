@@ -2,12 +2,18 @@ import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
 import { once } from "node:events";
 import test from "node:test";
-import { createApp } from "../src/app.ts";
+import { createLeads, type LeadDeps } from "../src/leads.ts";
 
-const secret = "test-session-secret-should-be-long-enough";
-
-async function listen(handler: ReturnType<typeof createApp>): Promise<{ server: Server; base: string }> {
-  const server = createServer(handler);
+async function listen(deps: LeadDeps): Promise<{ server: Server; base: string }> {
+  const handle = createLeads(deps);
+  const server = createServer(async (req, res) => {
+    const url = new URL(req.url ?? "/", "http://leads.local");
+    const ip = req.socket.remoteAddress ?? "";
+    if (!(await handle(req, res, url, ip))) {
+      res.writeHead(404);
+      res.end();
+    }
+  });
   server.listen(0, "127.0.0.1");
   await once(server, "listening");
   const address = server.address();
@@ -18,9 +24,7 @@ async function listen(handler: ReturnType<typeof createApp>): Promise<{ server: 
 test("заявка ГОС СЭС уходит админам в MAX", async () => {
   const sent: { userId: number; text: string }[] = [];
   const { server, base } = await listen(
-    createApp({
-      secret,
-      leads: {
+    {
         ses: {
           token: "token",
           admins: [11, 22],
@@ -29,8 +33,7 @@ test("заявка ГОС СЭС уходит админам в MAX", async () =
             return true;
           },
         },
-      },
-    }),
+    },
   );
   try {
     const response = await fetch(`${base}/api/lead/ses`, {
@@ -57,22 +60,17 @@ test("заявка ГОС СЭС уходит админам в MAX", async () =
 test("портфолио: слишком быстро и затем нормальная заявка", async () => {
   const sent: string[] = [];
   const now = 1_000_000;
-  const { server, base } = await listen(
-    createApp({
-      secret,
-      leads: {
-        now: () => now,
-        portfolio: {
-          token: "token",
-          admins: [7],
-          send: async (_userId, text) => {
-            sent.push(text);
-            return true;
-          },
-        },
+  const { server, base } = await listen({
+    now: () => now,
+    portfolio: {
+      token: "token",
+      admins: [7],
+      send: async (_userId, text) => {
+        sent.push(text);
+        return true;
       },
-    }),
-  );
+    },
+  });
   try {
     const fast = await fetch(`${base}/api/lead/portfolio`, {
       method: "POST",
@@ -100,24 +98,59 @@ test("портфолио: слишком быстро и затем нормал
   }
 });
 
+test("кнопка открывает счётчик с сайта и шлёт цель", async () => {
+  const sent: { text: string; link?: string }[] = [];
+  const now = 2_000_000;
+  const { server, base } = await listen({
+    now: () => now,
+    portfolio: {
+      token: "token",
+      webhookSecret: "hook",
+      admins: [7],
+      send: async (_userId, text, link) => {
+        sent.push({ text, link });
+        return true;
+      },
+    },
+  });
+  try {
+    const response = await fetch(`${base}/api/lead/portfolio`, {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://gcss-portfolio.ru" },
+      body: JSON.stringify({
+        name: "Иван",
+        phone: "+7 900 000-00-02",
+        source: "crm",
+        openedAt: now - 11_000,
+        metrika: { goal: "crm-form", pageUrl: "https://gcss-portfolio.ru/" },
+      }),
+    });
+    assert.equal(response.status, 200);
+    const link = sent[0]?.link ?? "";
+    assert.match(link, /\/api\/lead\/portfolio\/goal\?/);
+    const page = await fetch(`${base}${new URL(link).pathname}${new URL(link).search}`);
+    assert.equal(page.status, 200);
+    const html = await page.text();
+    assert.match(html, /mc\.yandex\.ru\/metrika\/tag\.js\?id=112716152/);
+    assert.match(html, /reachGoal',"crm-form"/);
+  } finally {
+    server.close();
+  }
+});
+
 test("/myid портфолио отвечает только со своим секретом", async () => {
   const sent: { userId: number; text: string }[] = [];
-  const { server, base } = await listen(
-    createApp({
-      secret,
-      leads: {
-        portfolio: {
-          token: "token",
-          webhookSecret: "hook",
-          admins: [],
-          send: async (userId, text) => {
-            sent.push({ userId, text });
-            return true;
-          },
-        },
+  const { server, base } = await listen({
+    portfolio: {
+      token: "token",
+      webhookSecret: "hook",
+      admins: [],
+      send: async (userId, text) => {
+        sent.push({ userId, text });
+        return true;
       },
-    }),
-  );
+    },
+  });
   try {
     const denied = await fetch(`${base}/api/lead/portfolio/webhook`, {
       method: "POST",

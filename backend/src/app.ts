@@ -6,7 +6,6 @@ import { handleExpenses } from "./expenses-api.ts";
 import { ledgerStores } from "./ledger.ts";
 import type { WriteoffStore } from "./writeoffs.ts";
 import { handleWriteoffs } from "./writeoffs-api.ts";
-import { createLeads, type LeadDeps } from "./leads.ts";
 import { createOrders, type OrderDeps } from "./orders.ts";
 import { loginPage, emptyPage } from "./pages.ts";
 import { handleApi } from "./sales-api.ts";
@@ -29,7 +28,6 @@ export type AppOptions = {
   expenses?: ExpenseStore;
   writeoffs?: WriteoffStore;
   orders?: OrderDeps;
-  leads?: LeadDeps;
 };
 
 type Failure = { count: number; reset: number };
@@ -105,7 +103,6 @@ export function createApp(options: AppOptions) {
   const writeoffs = options.writeoffs ?? ledger!.writeoffs;
   const failures = new Map<string, Failure>();
   const orders = createOrders({ ...options.orders, now });
-  const leads = createLeads({ now, ...options.leads });
 
   function openSession(req: IncomingMessage): { user: StoredUser; session: Session } | null {
     const token = cookiesOf(req).get(COOKIE);
@@ -148,7 +145,6 @@ export function createApp(options: AppOptions) {
     const renew = (session: Session) => renewedCookie(session, secure);
     const cookie = (value: string, maxAge: number) => sessionCookie(value, maxAge, secure);
 
-    if (await leads(req, res, url, clientIp(req))) return;
     if (await orders(req, res, url, clientIp(req))) return;
 
     if (
