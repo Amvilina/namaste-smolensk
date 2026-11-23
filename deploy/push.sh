@@ -14,14 +14,12 @@ echo "2/3 git pull в $APP"
 "${SSH[@]}" "cd '$APP' && git status -sb && git pull"
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-for env_file in "$ROOT/.env.cloudflare" "$ROOT/../ValeraSite/.env.cloudflare" "$ROOT/../portfolio-site/.env.cloudflare"; do
-  if [[ -f "$env_file" ]]; then
-    set -a
-    # shellcheck disable=SC1090
-    source "$env_file"
-    set +a
-  fi
-done
+if [[ -f "$ROOT/.env.cloudflare" ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$ROOT/.env.cloudflare"
+  set +a
+fi
 ENV_TMP="$(mktemp)"
 add_env() {
   local key="$1"
